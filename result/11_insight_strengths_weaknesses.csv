@@ -1,0 +1,7 @@
+,attr,selected_hotel,all_mean,diff,top_percent,score_classify
+0,location,8.5,8.3,0.2,63.6,Strength
+1,cleanliness,8.8,8.1,0.7,44.8,Strength
+2,service,8.6,8.3,0.3,59.2,Strength
+3,facilities,8.4,7.9,0.5,45.9,Neutral
+4,value_for_money,8.7,8.2,0.5,49.8,Strength
+5,comfort_and_room_quality,,8.3,,,Missing rating

@@ -1,0 +1,18 @@
+[{
+    "avatar": "https://randomuser.me/api/portraits/men/1.jpg",
+    "name": "Pham Ngoc Trong",
+    "role": "Data Scientist",
+    "fb": "https://facebook.com/trong",
+    "github": "https://github.com/trong",
+    "phone": "0123456789",
+    "email": "trong@example.com"
+},
+{
+    "avatar": "https://randomuser.me/api/portraits/men/2.jpg",
+    "name": "Tran Dinh Hung",
+    "role": "ML Engineer",
+    "fb": "https://facebook.com/hung",
+    "github": "https://github.com/hung",
+    "phone": "0987654321",
+    "email": "hung@example.com"
+}]
