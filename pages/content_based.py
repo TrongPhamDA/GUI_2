@@ -33,7 +33,7 @@ fn_render_mainpage_header(
     img_src=IMG_SRC,
     page_title=PAGE_TITLE,
     description_1=DESCRIPTION_1,
-    description_2=DESCRIPTION_2,
+    description_2=DESCRIPTION_name,
 )
 
 # ------------------------------------------------------------------------------

@@ -14,11 +14,11 @@ PAGE_TITLE = "AGODA Hotel Recommendation"
 
 # Page descriptions
 DESCRIPTION_1 = "Get tailored hotel suggestions with advanced filtering"
-DESCRIPTION_2 = "Discover top-rated stays tailored to your unique preferences"
-DESCRIPTION_3 = "Describe your dream stay—beachfront, city, or luxury—and we'll find your perfect match"
-DESCRIPTION_4 = "Advanced content-based filtering for personalized hotel recommendations"
+DESCRIPTION_name = "Discover top-rated stays tailored to your unique preferences"
+DESCRIPTION_search = "Describe your dream stay—beachfront, city, or luxury—and we'll find your perfect match"
 DESCRIPTION_finalreport = "About 'Final report' of the project"
 DESCRIPTION_insight = "Discover hotel strengths and improve guest experience through review insights"
+DESCRIPTION_als = "Advanced content-based filtering for personalized hotel recommendations"
 
 # ------------------------------------------------------------------------------
 # Default Parameters
