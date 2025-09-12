@@ -1,5 +1,12 @@
 import streamlit as st
 from PIL import Image
+import sys
+import os
+
+# Add current directory to Python path
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from myfunctions import fn_render_footer
+from app_config import *
 
 # load project main page
 st.markdown(
@@ -63,3 +70,7 @@ st.markdown('<div class="submitted">submitted: 13/09/2025</div>', unsafe_allow_h
 # load Agoda banner
 st.markdown("<br><br>", unsafe_allow_html=True)
 st.image("static/agoda_mainpage.jpg", use_container_width =True)
+
+# ------------------------------------------------------------------------------
+# Render footer
+fn_render_footer(OWNER, PROJECT_INFO, SHOW_FOOTER)
