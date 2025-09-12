@@ -7,9 +7,9 @@ import streamlit as st
 # Page definitions
 # ------------------------------------------------------------------------------
 home_page = st.Page("pages/home_page.py", title="Get started", icon=":material/launch:")
-content_based = st.Page("pages/content_based.py", title="select a hotel", icon=":material/search:")
-content_based_search = st.Page("pages/content_based_search.py", title="describe a hotel", icon=":material/search:")
-als_page = st.Page("pages/als_page.py", title="building | personalize your preferences", icon=":material/search:")
+content_based = st.Page("pages/content_based.py", title="by hotel name", icon=":material/search:")
+content_based_search = st.Page("pages/content_based_search.py", title="by hotel description", icon=":material/search:")
+als_page = st.Page("pages/als_page.py", title="by rating review", icon=":material/search:")
 insight_page = st.Page("pages/insight_page.py", title="Hotel Insight", icon=":material/lightbulb:")
 info_page = st.Page("pages/final_report_page.py", title="Final report", icon=":material/book:")
 
@@ -29,7 +29,7 @@ pg = st.navigation(
 # App configuration
 # ------------------------------------------------------------------------------
 st.set_page_config(
-    page_title="Ex-stream-ly Cool App",
+    page_title="AGODA Hotel Recommendation",
     page_icon=":material/hotel:",
     layout="wide",
     initial_sidebar_state="expanded",

@@ -14,6 +14,13 @@ import seaborn as sns
 from matplotlib.patches import Patch
 from wordcloud import WordCloud
 from collections import Counter
+import sys
+import ast
+
+# Add current directory to Python path
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from app_config import *
+
 
 # ------------------------------------------------------------------------------
 # Text Processing Functions
@@ -763,10 +770,10 @@ def fn_chart_score_distribution(
     return plt.gcf()
 
 
-def fn_display_hotel_insights(selected_hotel_id, df_hotels, figsize=(10, 5), bins_time=2, 
+def fn_display_hotel_insights(selected_hotel_id, df_hotels,figsize=DEFAULT_FIGSIZE, bins_time=2, 
                             rating_cols=None, score_classify_dict=None, show_radar=True, 
                             show_customer=True, show_wordcloud=True, word_count_limit=20, 
-                            df_comments=None):
+                            df_comments=None, df_comments_token=None):
     """
     Display comprehensive hotel insights with multiple chart types
     
@@ -801,13 +808,15 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels, figsize=(10, 5), bin
     
     # Display selected hotel information
     selected_hotel = df_hotels[df_hotels["hotel_id"] == selected_hotel_id]
+    
+    # Display hotel overview
     if not selected_hotel.empty:
         hotel_info = selected_hotel.iloc[0]
         st.markdown("### Hotel Analysis Overview")
         fn_display_hotel_info(hotel_info, desc_limit=150)
     
     # Create tabs for different analysis types
-    tab1, tab2, tab3, tab4 = st.tabs(["📊 Score Distribution", "🎯 Strengths & Weaknesses", "👥 Customer Analysis", "☁️ Text Mining"])
+    tab1, tab2, tab3, tab4 = st.tabs(["📈Score Distribution", "🎯Strengths & Weaknesses", "🛒Customer Analysis", "💬Text Mining"])
     
     with tab1:
         st.markdown("#### Score Distribution Analysis")
@@ -844,7 +853,50 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels, figsize=(10, 5), bin
                 plt.close()
             else:
                 st.info("No hotel rank data available")
-    
+
+        # Display insights summary with color coding
+        selected_overview = next((h for h in hotels_overview if h["hotel_id"] == selected_hotel_id), None)
+        
+        if selected_overview:
+            avg_score = selected_overview["avg_score"]
+            rank = selected_overview["hotel_rank"]
+            
+            # Calculate market averages for comparison
+            all_scores = df_overview["avg_score"].dropna()
+            market_avg_score = all_scores.mean() if not all_scores.empty else 0
+            
+            # Calculate market average rank if rank data available
+            all_ranks = df_overview["hotel_rank"].dropna()
+            market_avg_rank = all_ranks.mean() if not all_ranks.empty else 0
+            
+            # Display detailed statistics
+            st.markdown("### Market Position Analysis")
+            
+            if selected_overview and not df_overview.empty:
+                avg_score = selected_overview["avg_score"]
+                all_scores = df_overview["avg_score"].dropna()
+                
+                if not all_scores.empty and pd.notna(avg_score):
+                    col1, col2, col3, col4 = st.columns(4)
+                    
+                    with col1:
+                        st.metric(
+                            "Market Average",
+                            f"{all_scores.mean():.1f}"
+                        )
+                    
+                    with col2:
+                        st.metric(
+                            "Market Median", 
+                            f"{all_scores.median():.1f}"
+                        )
+                    
+                    with col3:
+                        fn_display_insights_with_colors("Your score", avg_score, market_avg_score)
+                    
+                    with col4:
+                        fn_display_insights_with_colors("Your rank", rank, market_avg_rank, "{:.0f}")
+
     with tab2:
         if show_radar:
             st.markdown("#### Strengths & Weaknesses Analysis")
@@ -855,47 +907,77 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels, figsize=(10, 5), bin
             )
             
             if not strengths_analysis.empty:
-                # Display radar chart
-                selected_hotel_name = selected_hotel.iloc[0]["hotel_name"] if not selected_hotel.empty else "Selected Hotel"
-                fig_radar = fn_chart_radar(
-                    df=strengths_analysis,
-                    selected_hotel_name=selected_hotel_name,
-                    figsize=(figsize[0], figsize[0]),  # Square for radar chart
-                    image_name="strengths_weaknesses_radar"
-                )
-                st.pyplot(fig_radar)
-                plt.close()
+                # Create 2-column layout for radar chart and analysis table
+                col_radar, col_table = st.columns(2)
                 
-                # Display detailed analysis table
-                st.markdown("##### Detailed Analysis")
-                display_df = strengths_analysis.copy()
-                display_df['diff_formatted'] = display_df['diff'].apply(lambda x: f"{x:+.2f}" if pd.notna(x) else "N/A")
-                display_df['classification_color'] = display_df['classification'].map({
-                    'Strength': '🟢', 'Neutral': '🟡', 'Weakness': '🔴'
+                with col_radar:
+                    # Display radar chart
+                    selected_hotel_name = selected_hotel.iloc[0]["hotel_name"] if not selected_hotel.empty else "Selected Hotel"
+                    fig_radar = fn_chart_radar(
+                        df=strengths_analysis,
+                        selected_hotel_name=selected_hotel_name,
+                        figsize=(figsize[1]/2, figsize[1]/2),  # Square for radar chart
+                        image_name="strengths_weaknesses_radar"
+                    )
+                    st.pyplot(fig_radar)
+                    plt.close()
+                
+                with col_table:
+                    # Display detailed analysis table
+                    display_df = strengths_analysis.copy()
+                    display_df['diff_formatted'] = display_df['diff'].apply(lambda x: f"{x:+.2f}" if pd.notna(x) else "Missing")
+                    display_df['classification_color'] = display_df['classification'].map({
+                        'Strength': '🟢', 'Neutral': '🟡', 'Weakness': '🔴', None: '⚪'
+                    })
+                    
+                    st.dataframe(
+                        display_df[['attr', 'selected_hotel', 'all_mean', 'diff_formatted', 'classification_color']].rename(columns={
+                            'attr': 'Attribute',
+                            'selected_hotel': 'Your Hotel',
+                            'all_mean': 'Market Average',
+                            'diff_formatted': 'Difference',
+                            'classification_color': 'Classification'
+                        }),
+                        use_container_width=True
+                    )
+                
+                # Summary insights table
+                summary_data = []
+                for classification in ['Strength', 'Neutral', 'Weakness', 'Missing']:
+                    if classification == 'Missing':
+                        items = strengths_analysis[strengths_analysis['classification'].isna()]
+                    else:
+                        items = strengths_analysis[strengths_analysis['classification'] == classification]
+                    
+                    if not items.empty:
+                        summary_data.append({
+                            'Classification': classification,
+                            'Count': len(items),
+                            'Attributes': ', '.join(items['attr'].tolist())
+                        })
+                    else:
+                        summary_data.append({
+                            'Classification': classification,
+                            'Count': 0,
+                            'Attributes': 'None'
+                        })
+                
+                # Display as table with color coding
+                summary_df = pd.DataFrame(summary_data)
+                summary_df['Color'] = summary_df['Classification'].map({
+                    'Strength': '🟢', 'Neutral': '🟡', 'Weakness': '🔴', 'Missing': '⚪'
                 })
                 
-                st.dataframe(
-                    display_df[['attr', 'selected_hotel', 'all_mean', 'diff_formatted', 'classification_color']].rename(columns={
-                        'attr': 'Attribute',
-                        'selected_hotel': 'Your Hotel',
-                        'all_mean': 'Market Average',
-                        'diff_formatted': 'Difference',
-                        'classification_color': 'Classification'
-                    }),
-                    use_container_width=True
-                )
-                
-                # Summary insights
-                strengths = strengths_analysis[strengths_analysis['classification'] == 'Strength']
-                weaknesses = strengths_analysis[strengths_analysis['classification'] == 'Weakness']
-                
-                col1, col2 = st.columns(2)
+                col1, col2 = st.columns([1, 1])
                 with col1:
-                    if not strengths.empty:
-                        st.success(f"**Strengths ({len(strengths)}):** {', '.join(strengths['attr'].tolist())}")
+                    st.write("") # bỏ qua để set layout cho bảng bên dưới
                 with col2:
-                    if not weaknesses.empty:
-                        st.error(f"**Weaknesses ({len(weaknesses)}):** {', '.join(weaknesses['attr'].tolist())}")
+                    st.markdown("##### Summary Insights")
+                    st.dataframe(
+                        summary_df[['Color', 'Classification', 'Count', 'Attributes']],
+                        use_container_width=True,
+                        hide_index=True
+                    )
             else:
                 st.warning("No rating data available for strengths & weaknesses analysis")
     
@@ -903,24 +985,51 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels, figsize=(10, 5), bin
         if show_customer:
             st.markdown("#### Customer Analysis")
             
-            # Get customer analysis data
-            customer_data = fn_get_customer_analysis_data(selected_hotel_id, df_comments)
-            
-            if not customer_data['score_stats'].empty:
-                st.markdown("##### Score Distribution by Level")
-                st.dataframe(customer_data['score_stats'], use_container_width=True)
+            if df_comments is not None and not df_comments.empty:
+                # Get selected hotel name
+                selected_hotel_name = df_hotels[df_hotels['hotel_id'] == selected_hotel_id]['hotel_name'].iloc[0] if not df_hotels[df_hotels['hotel_id'] == selected_hotel_id].empty else "Selected Hotel"
                 
-                # Display customer insights with color coding
-                st.markdown("##### Customer Insights")
-                if not customer_data['score_stats'].empty:
-                    positive_pct = customer_data['score_stats'][customer_data['score_stats']['score_level'] == 'Positive']['count_pct'].iloc[0] if 'Positive' in customer_data['score_stats']['score_level'].values else 0
-                    negative_pct = customer_data['score_stats'][customer_data['score_stats']['score_level'] == 'Negative']['count_pct'].iloc[0] if 'Negative' in customer_data['score_stats']['score_level'].values else 0
+                # Get comparison data
+                comparison_data = fn_get_customer_comparison_data(selected_hotel_id, df_comments)
+                selected_data = comparison_data['selected_hotel']
+                all_data = comparison_data['all_hotels']
+                
+                # Get colors from config
+                selected_color = CUSTOMER_COMPARISON_CONFIG["colors"]["selected_hotel"]
+                all_color = CUSTOMER_COMPARISON_CONFIG["colors"]["all_hotels"]
+                
+                # Create charts for each configuration in table format
+                for i, config in enumerate(CUSTOMER_COMPARISON_CONFIG["chart_types"]):
+                    col = config["column"]
+                    chart_type = config["type"]
+                    title = config["title"]
                     
+                    # Check if column exists in data
+                    if col not in selected_data.columns or col not in all_data.columns:
+                        continue
+                    
+                    # Create two columns for each row
                     col1, col2 = st.columns(2)
+                    
                     with col1:
-                        st.metric("Positive Reviews", f"{positive_pct:.1f}%", "🟢")
+                        # Selected hotel chart
+                        fig_selected, ax_selected = plt.subplots(figsize=figsize)
+                        if chart_type == "bar":
+                            fn_bar_chart(ax_selected, selected_data, col, selected_color, f"{selected_hotel_name}\n{title}")
+                        else:
+                            fn_line_timeseries_chart(ax_selected, selected_data, col, selected_color, f"{selected_hotel_name}\n{title}")
+                        st.pyplot(fig_selected)
+                        plt.close()
+                    
                     with col2:
-                        st.metric("Negative Reviews", f"{negative_pct:.1f}%", "🔴")
+                        # All hotels chart
+                        fig_all, ax_all = plt.subplots(figsize=figsize)
+                        if chart_type == "bar":
+                            fn_bar_chart(ax_all, all_data, col, all_color, f"All Hotels\n{title}")
+                        else:
+                            fn_line_timeseries_chart(ax_all, all_data, col, all_color, f"All Hotels\n{title}")
+                        st.pyplot(fig_all)
+                        plt.close()
             else:
                 st.info("Customer analysis requires review data. This feature will be available when review data is loaded.")
     
@@ -929,146 +1038,81 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels, figsize=(10, 5), bin
             st.markdown("#### Text Mining Analysis")
             
             # Get text mining data
-            text_data = fn_get_text_mining_data(selected_hotel_id, df_comments, word_count_limit)
+            text_data = fn_get_text_mining_data(selected_hotel_id, df_comments=df_comments_token, topN=word_count_limit)
             
-            if not text_data['hotel_positive'].empty or not text_data['hotel_negative'].empty:
+            if not text_data['hotel_positive'].empty or not text_data['hotel_negative'].empty or not text_data['all_positive'].empty or not text_data['all_negative'].empty:
+                
+                # Create 2x2 layout for wordclouds
+                st.markdown("##### WordCloud Comparison: Selected Hotel vs All Hotels")
+                
+                # Row 1: Positive Keywords
+                # st.markdown("**Positive Keywords**")
                 col1, col2 = st.columns(2)
                 
                 with col1:
-                    st.markdown("##### Positive Keywords")
+                    # st.markdown("**Selected Hotel**")
                     if not text_data['hotel_positive'].empty:
-                        fig_pos = fn_chart_wordcloud(
+                        fig_pos_hotel = fn_chart_wordcloud(
                             df=text_data['hotel_positive'],
-                            title="Positive Keywords",
+                            title="Selected Hotel - Positive",
                             figsize=(figsize[0], figsize[1]),
-                            image_name="positive_wordcloud"
+                            image_name="positive_wordcloud_hotel"
                         )
-                        st.pyplot(fig_pos)
+                        st.pyplot(fig_pos_hotel)
                         plt.close()
-                        
-                        # Display top positive words
-                        st.dataframe(text_data['hotel_positive'].head(10), use_container_width=True)
                     else:
-                        st.info("No positive keywords found")
+                        st.info("No positive keywords found for selected hotel")
                 
                 with col2:
-                    st.markdown("##### Negative Keywords")
-                    if not text_data['hotel_negative'].empty:
-                        fig_neg = fn_chart_wordcloud(
-                            df=text_data['hotel_negative'],
-                            title="Negative Keywords",
+                    # st.markdown("**All Hotels**")
+                    if not text_data['all_positive'].empty:
+                        fig_pos_all = fn_chart_wordcloud(
+                            df=text_data['all_positive'],
+                            title="All Hotels - Positive",
                             figsize=(figsize[0], figsize[1]),
-                            image_name="negative_wordcloud"
+                            image_name="positive_wordcloud_all"
                         )
-                        st.pyplot(fig_neg)
+                        st.pyplot(fig_pos_all)
                         plt.close()
-                        
-                        # Display top negative words
-                        st.dataframe(text_data['hotel_negative'].head(10), use_container_width=True)
                     else:
-                        st.info("No negative keywords found")
+                        st.info("No positive keywords found for all hotels")
                 
-                # Text mining insights
-                st.markdown("##### Text Mining Insights")
-                if not text_data['hotel_positive'].empty and not text_data['hotel_negative'].empty:
-                    pos_words = len(text_data['hotel_positive'])
-                    neg_words = len(text_data['hotel_negative'])
-                    
-                    col1, col2, col3 = st.columns(3)
-                    with col1:
-                        st.metric("Positive Keywords", pos_words, "📈")
-                    with col2:
-                        st.metric("Negative Keywords", neg_words, "📉")
-                    with col3:
-                        sentiment_ratio = pos_words / (pos_words + neg_words) * 100 if (pos_words + neg_words) > 0 else 0
-                        st.metric("Sentiment Ratio", f"{sentiment_ratio:.1f}%", "📊")
+                # Row 2: Negative Keywords
+                # st.markdown("**Negative Keywords**")
+                col3, col4 = st.columns(2)
+                
+                with col3:
+                    # st.markdown("**Selected Hotel**")
+                    if not text_data['hotel_negative'].empty:
+                        fig_neg_hotel = fn_chart_wordcloud(
+                            df=text_data['hotel_negative'],
+                            title="Selected Hotel - Negative",
+                            figsize=(figsize[0], figsize[1]),
+                            image_name="negative_wordcloud_hotel"
+                        )
+                        st.pyplot(fig_neg_hotel)
+                        plt.close()
+                    else:
+                        st.info("No negative keywords found for selected hotel")
+                
+                with col4:
+                    # st.markdown("**All Hotels**")
+                    if not text_data['all_negative'].empty:
+                        fig_neg_all = fn_chart_wordcloud(
+                            df=text_data['all_negative'],
+                            title="All Hotels - Negative",
+                            figsize=(figsize[0], figsize[1]),
+                            image_name="negative_wordcloud_all"
+                        )
+                        st.pyplot(fig_neg_all)
+                        plt.close()
+                    else:
+                        st.info("No negative keywords found for all hotels")
+                
             else:
                 st.info("Text mining analysis requires review text data. This feature will be available when review data is loaded.")
     
-    # Display insights summary with color coding
-    st.markdown("### Key Insights")
-    selected_overview = next((h for h in hotels_overview if h["hotel_id"] == selected_hotel_id), None)
-    
-    if selected_overview:
-        avg_score = selected_overview["avg_score"]
-        rank = selected_overview["hotel_rank"]
-        
-        # Calculate market averages for comparison
-        all_scores = df_overview["avg_score"].dropna()
-        market_avg_score = all_scores.mean() if not all_scores.empty else 0
-        
-        # Calculate market average rank if rank data available
-        all_ranks = df_overview["hotel_rank"].dropna()
-        market_avg_rank = all_ranks.mean() if not all_ranks.empty else 0
-        
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            fn_display_insights_with_colors("Average Score", avg_score, market_avg_score)
-        
-        with col2:
-            fn_display_insights_with_colors("Hotel Rank", rank, market_avg_rank, "{:.0f}")
-        
-        with col3:
-            st.metric(
-                "Total Hotels Analyzed",
-                len(hotels_overview)
-            )
-    
-    # Display detailed statistics
-    st.markdown("### Market Position Analysis")
-    
-    if selected_overview and not df_overview.empty:
-        avg_score = selected_overview["avg_score"]
-        all_scores = df_overview["avg_score"].dropna()
-        
-        if not all_scores.empty and pd.notna(avg_score):
-            col1, col2, col3, col4 = st.columns(4)
-            
-            with col1:
-                st.metric(
-                    "Market Average",
-                    f"{all_scores.mean():.1f}"
-                )
-            
-            with col2:
-                st.metric(
-                    "Market Median", 
-                    f"{all_scores.median():.1f}"
-                )
-            
-            with col3:
-                st.metric(
-                    "Your Hotel Score",
-                    f"{avg_score:.1f}"
-                )
-            
-            with col4:
-                score_diff = avg_score - all_scores.mean()
-                st.metric(
-                    "Score Difference",
-                    f"{score_diff:+.1f}",
-                    f"{'Above' if score_diff > 0 else 'Below'} Market"
-                )
-        
-        # Display competitive analysis with show/hide table
-        st.markdown("### Competitive Analysis")
-        
-        # Find similar hotels (within 0.5 points)
-        if pd.notna(avg_score):
-            similar_hotels = df_overview[
-                (df_overview["avg_score"] >= avg_score - 0.5) & 
-                (df_overview["avg_score"] <= avg_score + 0.5) &
-                (df_overview["hotel_id"] != selected_hotel_id)
-            ]
-            
-            if not similar_hotels.empty:
-                st.info(f"Found {len(similar_hotels)} hotels with similar scores (±0.5 points)")
-                
-                # Use the new competitive analysis table function
-                fn_display_competitive_analysis_table(similar_hotels, selected_hotel_id)
-            else:
-                st.info("No hotels found with similar scores")
+
 
 
 def fn_score_classify(score, score_classify_dict):
@@ -1130,8 +1174,8 @@ def fn_chart_radar(
     ax.plot(angles, means, label="Other Hotels", linewidth=2, linestyle='dashed', color=color_dict["all_mean"])
     ax.fill(angles, means, alpha=0.1, color=color_dict["all_mean"])
     ax.set_thetagrids(np.degrees(angles[:-1]), attributes, fontsize=10)
-    title = "Strengths & Weaknesses"
-    ax.set_title(label=title, fontsize=16, fontweight='bold', pad=16)
+    # title = "Strengths & Weaknesses"
+    # ax.set_title(label=title, fontsize=16, fontweight='bold', pad=16)
     ax.set_ylim(0, 10)
     ax.legend(loc='upper left', bbox_to_anchor=(1, 1), fontsize=8)
     
@@ -1468,6 +1512,84 @@ def fn_get_customer_analysis_data(selected_hotel_id, df_comments=None):
     }
 
 
+def fn_bar_chart(ax, df, cat_col, color, title):
+    """
+    Create bar chart for categorical data
+    
+    Args:
+        ax: matplotlib axis object
+        df: DataFrame with data
+        cat_col: categorical column name
+        color: color for bars
+        title: chart title
+    """
+    data = df[cat_col].value_counts().head(10).sort_values(ascending=False)
+    if not data.empty:
+        sns.barplot(x=data.values, y=data.index, ax=ax, color=color)
+    ax.set_title(title, fontweight='bold')
+    ax.set_xlabel("Count")
+    ax.set_ylabel(cat_col)
+
+
+def fn_line_timeseries_chart(ax, df, time_col, color, title):
+    """
+    Create line chart for time series data
+    
+    Args:
+        ax: matplotlib axis object
+        df: DataFrame with data
+        time_col: time column name
+        color: color for line
+        title: chart title
+    """
+    data = df[time_col].value_counts().sort_index()
+    if not data.empty:
+        # Use data.index directly since it's already sorted integers
+        x = data.index
+        y = data.values
+        
+        # Create line plot with markers
+        ax.plot(x, y, marker="o", color=color, linewidth=2, markersize=6)
+        
+        # Force display all x-axis labels
+        ax.set_xticks(x)
+        ax.set_xticklabels(x)
+        
+        # Set x-axis labels and rotation for time columns
+        if time_col in ['stay_month', 'review_month', 'review_year']:
+            ax.tick_params(axis='x', rotation=45)
+    
+    ax.set_title(title, fontweight='bold')
+    ax.set_xlabel(time_col)
+    ax.set_ylabel("Count")
+
+
+def fn_get_customer_comparison_data(selected_hotel_id, df_comments=None):
+    """
+    Get customer analysis data for both selected hotel and all hotels
+    
+    Args:
+        selected_hotel_id: ID of selected hotel
+        df_comments: DataFrame with comment data (optional)
+    
+    Returns:
+        Dictionary with comparison data for selected hotel and all hotels
+    """
+    if df_comments is None or df_comments.empty:
+        return {
+            'selected_hotel': pd.DataFrame(),
+            'all_hotels': pd.DataFrame()
+        }
+    
+    # Filter comments for selected hotel
+    selected_hotel_comments = df_comments[df_comments['hotel_id'] == selected_hotel_id]
+    
+    return {
+        'selected_hotel': selected_hotel_comments,
+        'all_hotels': df_comments
+    }
+
+
 def fn_get_text_mining_data(selected_hotel_id, df_comments=None, topN=20):
     """
     Get text mining data for selected hotel
@@ -1511,3 +1633,13 @@ def fn_get_text_mining_data(selected_hotel_id, df_comments=None, topN=20):
         'hotel_positive': hotel_positive,
         'hotel_negative': hotel_negative
     }
+
+
+# Convert body_new_clean from string to list
+def convert_string_to_list(x):
+    if isinstance(x, str):
+        try:
+            return ast.literal_eval(x)
+        except (ValueError, SyntaxError):
+            return []
+    return x

@@ -47,6 +47,9 @@ DESC_LIMIT_STEP = 50
 # Data files
 HOTEL_INFO_CSV = "result/01_df_info.csv"
 HOTEL_INFO_TOKEN_CSV = "input/hotel_info_token.csv"
+HOTEL_COMMENTS_CSV = "result/02_df_comments.csv"
+HOTEL_COMMENTS_TOKEN_CSV = "result/13_insight_textmining_comments_classification_token_cleaned.csv"
+ALS_RECOMMENDATION_FOR_ALL_USERS = "result/09_ALS_recommendation_for_all_user.csv"
 
 # Report files
 FINAL_REPORT = "static/Final_Report.pdf"
@@ -138,6 +141,21 @@ CUSTOMER_CHART_COLS = {
     "fn_line_timeseries_chart": ["review_month"]
 }
 
+# Customer comparison chart configuration
+CUSTOMER_COMPARISON_CONFIG = {
+    "chart_types": [
+        {"type": "bar", "column": "nationality", "title": "Top 10 Nationality"},
+        {"type": "bar", "column": "group_name", "title": "Top 10 Group Name"},
+        {"type": "bar", "column": "room_type", "title": "Top 10 Room Type"},
+        {"type": "line", "column": "review_month", "title": "Review by Month"},
+        {"type": "line", "column": "review_year", "title": "Review by Year"}
+    ],
+    "colors": {
+        "selected_hotel": "#4C72B0",
+        "all_hotels": "#55A868"
+    }
+}
+
 # Word cloud configuration
 WORDCLOUD_CONFIG = {
     "width": 1000,
@@ -195,7 +213,7 @@ OWNER_3 = {
     "name": "Khuất Thùy Phương",
     "position": "Instructor",
     "email": "tubirona@gmail.com",
-    "phone": "+84 123 456 789",
+    "phone": "000 0000 000",
     "website": "https://github.com/khuatphuong",
     "image_src": "static/instructor.png"
 }
