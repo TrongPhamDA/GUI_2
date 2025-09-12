@@ -194,7 +194,7 @@ OWNER_1 = {
     "position": "Owner",
     "email": "phanlong.trong@gmail.com",
     "phone": "034 981 6784",
-    "website": "https://github.com/TrongPhamDA",
+    "website": "https://www.facebook.com/TrongPhamDA",
     "image_src": "static/owner.png"
 }
 
