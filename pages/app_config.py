@@ -24,10 +24,6 @@ DESCRIPTION_als = "Advanced content-based filtering for personalized hotel recom
 # Default Parameters
 # ------------------------------------------------------------------------------
 
-# Recommendation parameters
-DEFAULT_TOP_K = 3
-DEFAULT_DESC_LIMIT = 100
-
 # Search parameters
 DEFAULT_SEARCH_INPUT = "khách sạn mới, rộng, gần biển, có trẻ em"
 
@@ -35,10 +31,12 @@ DEFAULT_SEARCH_INPUT = "khách sạn mới, rộng, gần biển, có trẻ em"
 TOP_K_MIN = 1
 TOP_K_MAX = 10
 TOP_K_STEP = 1
+DEFAULT_TOP_K = 3
 
-DESC_LIMIT_MIN = 50
+DESC_LIMIT_MIN = 30
 DESC_LIMIT_MAX = 500
-DESC_LIMIT_STEP = 50
+DESC_LIMIT_STEP = 10
+DEFAULT_DESC_LIMIT = 30
 
 # ------------------------------------------------------------------------------
 # File Paths
