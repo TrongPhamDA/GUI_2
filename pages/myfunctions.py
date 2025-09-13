@@ -408,6 +408,23 @@ def fn_display_recommended_hotels(recommended_hotels: pd.DataFrame, cols: int):
                     st.expander("Hotel Description")
 
 
+def fn_rank_star(rank):
+    if pd.isna(rank) or str(rank).strip() == "...":
+        return " "
+    full_stars = int(rank)
+    half_star = 1 if (rank - full_stars) >= 0.5 else 0
+    empty_stars = 5 - full_stars - half_star
+    star_html = (
+        "<span style='color: #FFD700; font-size: 2.0rem;'>"
+        + "★" * full_stars
+        + ("½" if half_star else "")
+        + "<span style='color: #e1e1e1;'>" + "★" * empty_stars + "</span>"
+        + "</span>"
+        + f" <span style='font-size:1.1rem; color:#444;'>({rank:.1f})</span>"
+    )
+    return star_html
+
+
 def fn_display_hotel_info(hotel_info: pd.Series, desc_limit: int = 100):
     """
     Display detailed hotel information including business metrics and guest ratings
@@ -420,8 +437,8 @@ def fn_display_hotel_info(hotel_info: pd.Series, desc_limit: int = 100):
     with st.container():
         st.markdown(f"**Address:** {hotel_info['hotel_address']}")
         cols_info = st.columns(6)
-        cols_info[0].metric("Total Score", hotel_info["total_score"] if pd.notna(hotel_info["total_score"]) else "...")
-        cols_info[1].metric("Rank", hotel_info["hotel_rank"] if pd.notna(hotel_info["hotel_rank"]) else "...")
+        cols_info[0].markdown(f"**Total Score**  \n<span style='font-size:2rem; font-weight:700; color:#1e3c72'>{hotel_info['total_score'] if pd.notna(hotel_info['total_score']) else '...'}</span>", unsafe_allow_html=True)
+        cols_info[1].markdown(f"**Rank**  \n{fn_rank_star(hotel_info['hotel_rank'])}", unsafe_allow_html=True)
         cols_info[2].metric(
             "Comments Count", f"{hotel_info['comments_count']:,}".replace(",", ".") if pd.notna(hotel_info["comments_count"]) else "..."
         )
@@ -433,7 +450,7 @@ def fn_display_hotel_info(hotel_info: pd.Series, desc_limit: int = 100):
         cols[3].metric("Facilities", hotel_info["facilities"] if pd.notna(hotel_info["facilities"]) else "...")
         cols[4].metric("Value for Money", hotel_info["value_for_money"] if pd.notna(hotel_info["value_for_money"]) else "...")
         cols[5].metric("Comfort & Room Quality", hotel_info["comfort_and_room_quality"] if pd.notna(hotel_info["comfort_and_room_quality"]) else "...")
-        with st.expander("Hotel Description", expanded=True):
+        with st.expander("Hotel description: Show Details", expanded=False):
             st.write(
                 " ".join(str(hotel_info["hotel_description"]).split()[:desc_limit])
                 + "..."
@@ -530,19 +547,28 @@ def fn_display_recommendations_section(
         for c in criteria:
             table += f"<tr><td style='font-weight:600;text-align:left;width:{col_fact_width}%;{td_style}'>{c.replace('_',' ').title()}</td>"
             if c == "hotel_description":
-                desc_main = (
-                    " ".join(str(main_hotel_clean.get(c, "")).split()[:desc_limit]) + "..."
-                )
-                table += f"<td style='max-width:350px;word-break:break-word;text-align:left;vertical-align:top;width:{col_other_width}%;{td_style};text-align:left;vertical-align:top;'>{desc_main}</td>"
+                # Sử dụng expander cho từng khách sạn, chỉ show desc_rec_short khi nhấn Show details
+                desc_main_full = str(main_hotel_clean.get(c, ""))
+                desc_main_short = " ".join(desc_main_full.split()[:desc_limit]) + ("..." if len(desc_main_full.split()) > desc_limit else "")
+                table += f"<td style='max-width:350px;word-break:break-word;text-align:left;vertical-align:top;width:{col_other_width}%;{td_style};text-align:left;vertical-align:top;'>"
+                table += f"<details><summary style='cursor:pointer;'>Show details</summary><div style='margin-top:8px;text-align:left;'>{desc_main_short}</div></details></td>"
                 for _, h in recommendations_clean.iterrows():
-                    desc_rec = " ".join(str(h.get(c, "")).split()[:desc_limit]) + "..."
-                    table += f"<td style='max-width:350px;word-break:break-word;text-align:left;vertical-align:top;width:{col_other_width}%;{td_style};text-align:left;vertical-align:top;'>{desc_rec}</td>"
-            elif c in ["hotel_rank", "total_score"]:
+                    desc_rec_full = str(h.get(c, ""))
+                    desc_rec_short = " ".join(desc_rec_full.split()[:desc_limit]) + ("..." if len(desc_rec_full.split()) > desc_limit else "")
+                    table += f"<td style='max-width:350px;word-break:break-word;text-align:left;vertical-align:top;width:{col_other_width}%;{td_style};text-align:left;vertical-align:top;'>"
+                    table += f"<details><summary style='cursor:pointer;'>Show details</summary><div style='margin-top:8px;text-align:left;'>{desc_rec_short}</div></details></td>"
+            elif c == "hotel_rank":
                 value_main = main_hotel_clean.get(c, "")
-                table += f"<td style='font-size:1.5em;font-weight:bold;width:{col_other_width}%;{td_style}'>{value_main}</td>"
+                table += f"<td style='font-size:2.0em;font-weight:bold;width:{col_other_width}%;{td_style}'>{fn_rank_star(value_main)}</td>"
                 for _, h in recommendations_clean.iterrows():
                     value_rec = h.get(c, "")
-                    table += f"<td style='font-size:1.5em;font-weight:bold;width:{col_other_width}%;{td_style}'>{value_rec}</td>"
+                    table += f"<td style='font-size:2.0em;font-weight:bold;width:{col_other_width}%;{td_style}'>{fn_rank_star(value_rec)}</td>"
+            elif c == "total_score":
+                value_main = main_hotel_clean.get(c, "")
+                table += f"<td style='font-size:2.0em;font-weight:bold;width:{col_other_width}%;{td_style}'>{value_main}</td>"
+                for _, h in recommendations_clean.iterrows():
+                    value_rec = h.get(c, "")
+                    table += f"<td style='font-size:2.0em;font-weight:bold;width:{col_other_width}%;{td_style}'>{value_rec}</td>"
             else:
                 table += f"<td style='width:{col_other_width}%;{td_style}'>{main_hotel_clean.get(c,'')}</td>"
                 for _, h in recommendations_clean.iterrows():
