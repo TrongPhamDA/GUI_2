@@ -1077,7 +1077,6 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels,figsize=DEFAULT_FIGSI
                     else:
                         st.info("No positive keywords found for all hotels")
                 
-                st.write("---")
                 # Row 2: Negative Keywords
                 # st.markdown("**Negative Keywords**")
                 col3, col4 = st.columns(2)
