@@ -437,11 +437,11 @@ def fn_display_hotel_info(hotel_info: pd.Series, desc_limit: int = 100):
     with st.container():
         st.markdown(f"**Address:** {hotel_info['hotel_address']}")
         cols_info = st.columns(6)
-        cols_info[0].markdown(f"**Total Score**  \n<span style='font-size:2rem; font-weight:700; color:#1e3c72'>{hotel_info['total_score'] if pd.notna(hotel_info['total_score']) else '...'}</span>", unsafe_allow_html=True)
+        cols_info[0].markdown(f"**Total Score**  \n<span style='font-size:2rem; font-weight:700; color:#07af56'>{hotel_info['total_score'] if pd.notna(hotel_info['total_score']) else '...'}</span>", unsafe_allow_html=True)
         cols_info[1].markdown(f"**Rank**  \n{fn_rank_star(hotel_info['hotel_rank'])}", unsafe_allow_html=True)
-        cols_info[2].metric(
-            "Comments Count", f"{hotel_info['comments_count']:,}".replace(",", ".") if pd.notna(hotel_info["comments_count"]) else "..."
-        )
+        # cols_info[2].metric(
+        #     "Comments Count", f"{hotel_info['comments_count']:,}".replace(",", ".") if pd.notna(hotel_info["comments_count"]) else "..."
+        # )
         st.markdown("##### Ratings")
         cols = st.columns(6)
         cols[0].metric("Location", hotel_info["location"] if pd.notna(hotel_info["location"]) else "...")
@@ -565,10 +565,10 @@ def fn_display_recommendations_section(
                     table += f"<td style='font-size:2.0em;font-weight:bold;width:{col_other_width}%;{td_style}'>{fn_rank_star(value_rec)}</td>"
             elif c == "total_score":
                 value_main = main_hotel_clean.get(c, "")
-                table += f"<td style='font-size:2.0em;font-weight:bold;width:{col_other_width}%;{td_style}'>{value_main}</td>"
+                table += f"<td style='font-size:2.0em;font-weight:bold;width:{col_other_width}%;{td_style}color:#07af56;'>{value_main}</td>"
                 for _, h in recommendations_clean.iterrows():
                     value_rec = h.get(c, "")
-                    table += f"<td style='font-size:2.0em;font-weight:bold;width:{col_other_width}%;{td_style}'>{value_rec}</td>"
+                    table += f"<td style='font-size:2.0em;font-weight:bold;width:{col_other_width}%;{td_style}color:#07af56;'>{value_rec}</td>"
             else:
                 table += f"<td style='width:{col_other_width}%;{td_style}'>{main_hotel_clean.get(c,'')}</td>"
                 for _, h in recommendations_clean.iterrows():
@@ -849,7 +849,7 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels,figsize=DEFAULT_FIGSI
         col1, col2 = st.columns(2)
         
         with col1:
-            st.markdown("##### Average Score Distribution")
+            # st.markdown("##### Average Score Distribution")
             fig1 = fn_chart_score_distribution(
                 df=df_overview,
                 score_col="avg_score",
@@ -863,7 +863,7 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels,figsize=DEFAULT_FIGSI
             plt.close()
         
         with col2:
-            st.markdown("##### Hotel Rank Distribution")
+            # st.markdown("##### Hotel Rank Distribution")
             df_rank = df_overview[df_overview["hotel_rank"].notna()]
             if not df_rank.empty:
                 fig2 = fn_chart_score_distribution(
@@ -903,7 +903,7 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels,figsize=DEFAULT_FIGSI
                 all_scores = df_overview["avg_score"].dropna()
                 
                 if not all_scores.empty and pd.notna(avg_score):
-                    col1, col2, col3, col4 = st.columns(4)
+                    col1, col2, col3, col4, col5, col6 = st.columns(6)
                     
                     with col1:
                         st.metric(
@@ -917,11 +917,11 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels,figsize=DEFAULT_FIGSI
                             f"{all_scores.median():.1f}"
                         )
                     
-                    with col3:
-                        fn_display_insights_with_colors("Your score", avg_score, market_avg_score)
+                    # with col3:
+                    #     fn_display_insights_with_colors("Your score", avg_score, market_avg_score)
                     
-                    with col4:
-                        fn_display_insights_with_colors("Your rank", rank, market_avg_rank, "{:.0f}")
+                    # with col4:
+                    #     fn_display_insights_with_colors("Your rank", rank, market_avg_rank, "{:.0f}")
 
     with tab2:
         if show_radar:
@@ -942,7 +942,7 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels,figsize=DEFAULT_FIGSI
                     fig_radar = fn_chart_radar(
                         df=strengths_analysis,
                         selected_hotel_name=selected_hotel_name,
-                        figsize=(figsize[1]/2, figsize[1]/2),  # Square for radar chart
+                        figsize=(figsize[0], figsize[1]),  # Square for radar chart
                         image_name="strengths_weaknesses_radar"
                     )
                     st.pyplot(fig_radar)
@@ -951,7 +951,7 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels,figsize=DEFAULT_FIGSI
                 with col_table:
                     # Display detailed analysis table
                     display_df = strengths_analysis.copy()
-                    display_df['diff_formatted'] = display_df['diff'].apply(lambda x: f"{x:+.2f}" if pd.notna(x) else "Missing")
+                    display_df['diff_formatted'] = display_df['diff'].apply(lambda x: f"{x:+.1f}" if pd.notna(x) else "Missing")
                     display_df['classification_color'] = display_df['classification'].map({
                         'Strength': '🟢', 'Neutral': '🟡', 'Weakness': '🔴', None: '⚪'
                     })
@@ -984,8 +984,8 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels,figsize=DEFAULT_FIGSI
                     else:
                         summary_data.append({
                             'Classification': classification,
-                            'Count': 0,
-                            'Attributes': 'None'
+                            'Count': '',
+                            'Attributes': ''
                         })
                 
                 # Display as table with color coding
@@ -1061,7 +1061,7 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels,figsize=DEFAULT_FIGSI
     
     with tab4:
         if show_wordcloud:
-            st.markdown("#### Text Mining Analysis")
+            st.markdown("#### Text Mining Analysis - WordCloud Comparison")
             
             # Get text mining data
             text_data = fn_get_text_mining_data(selected_hotel_id, df_comments=df_comments_token, topN=word_count_limit)
@@ -1069,7 +1069,7 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels,figsize=DEFAULT_FIGSI
             if not text_data['hotel_positive'].empty or not text_data['hotel_negative'].empty or not text_data['all_positive'].empty or not text_data['all_negative'].empty:
                 
                 # Create 2x2 layout for wordclouds
-                st.markdown("##### WordCloud Comparison: Selected Hotel vs All Hotels")
+                # st.markdown("##### WordCloud Comparison: Selected Hotel vs All Hotels")
                 
                 # Row 1: Positive Keywords
                 # st.markdown("**Positive Keywords**")

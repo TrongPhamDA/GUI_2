@@ -25,7 +25,7 @@ DESCRIPTION_als = "Advanced content-based filtering for personalized hotel recom
 # ------------------------------------------------------------------------------
 
 # Search parameters
-DEFAULT_SEARCH_INPUT = "khách sạn mới, rộng, gần biển, có trẻ em"
+DEFAULT_SEARCH_INPUT = "khách sạn 5 sao mới, gần biển, spa"
 
 # UI Control ranges
 TOP_K_MIN = 1
@@ -143,14 +143,14 @@ CUSTOMER_CHART_COLS = {
 CUSTOMER_COMPARISON_CONFIG = {
     "chart_types": [
         {"type": "bar", "column": "nationality", "title": "Top 10 Nationality"},
-        {"type": "bar", "column": "group_name", "title": "Top 10 Group Name"},
+        {"type": "bar", "column": "group_name", "title": "Group Name"},
         {"type": "bar", "column": "room_type", "title": "Top 10 Room Type"},
         {"type": "line", "column": "review_month", "title": "Review by Month"},
         {"type": "line", "column": "review_year", "title": "Review by Year"}
     ],
     "colors": {
-        "selected_hotel": "#4C72B0",
-        "all_hotels": "#55A868"
+        "selected_hotel": "#ffbb26",
+        "all_hotels": "#6787bb"
     }
 }
 
@@ -167,7 +167,7 @@ WORDCLOUD_CONFIG = {
 # Word count limit configuration
 WORD_COUNT_LIMIT_MIN = 10
 WORD_COUNT_LIMIT_MAX = 100
-WORD_COUNT_LIMIT_DEFAULT = 20
+WORD_COUNT_LIMIT_DEFAULT = 25
 WORD_COUNT_LIMIT_STEP = 5
 
 # ------------------------------------------------------------------------------
@@ -223,7 +223,7 @@ OWNER = [OWNER_1, OWNER_2, OWNER_3]
 PROJECT_INFO = {
     "title": "AGODA Hotel Recommendation System",
     "course": "DL07_K306",
-    "submission_date": "13/09/2025",
+    "submission_date": "20/09/2025",
     "university": "Data Science & Machine Learning Certificate"
 }
 

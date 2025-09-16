@@ -64,7 +64,7 @@ st.markdown('<div class="report">PROJECT_02</div>', unsafe_allow_html=True)
 st.markdown('<div class="subtitle">AGODA</div>', unsafe_allow_html=True)
 st.markdown('<div class="main-title">RECOMMENDATION<br>SYSTEM</div>', unsafe_allow_html=True)
 st.markdown('<div class="team">DL07_K306, PHẠM NGỌC TRỌNG, TRẦN ĐÌNH HÙNG</div>', unsafe_allow_html=True)
-st.markdown('<div class="submitted">submitted: 13/09/2025</div>', unsafe_allow_html=True)
+st.markdown('<div class="submitted">submitted: 20/09/2025</div>', unsafe_allow_html=True)
 
 
 # load Agoda banner

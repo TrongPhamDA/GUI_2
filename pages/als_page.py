@@ -42,27 +42,17 @@ df_reviewer_counts = df_reviewer_counts.sort_values(['count', 'reviewer_name'], 
 # ------------------------------------------------------------------------------
 # User interface controls
 with st.sidebar:
-    hotel_count_option = st.radio(
-        "Select users with minimum available hotels:",
-        options=[3, 2, 1],
-        format_func=lambda x: f"{x} hotels",
-        index=0
-    )
-    
-    filtered_users = df_reviewer_counts[df_reviewer_counts['count'] == hotel_count_option]
-    st.info(f"Found {len(filtered_users)} users with = {hotel_count_option} available hotels")
-    
-    if not filtered_users.empty:
-        selected_user = st.selectbox(
-            "Select Reviewer:",
-            options=filtered_users['reviewer_name'].tolist(),
-            index=0,
-            format_func=lambda x: f"{x} ({filtered_users[filtered_users['reviewer_name']==x]['count'].iloc[0]} hotels)"
-        )
-    else:
-        selected_user = None
-        st.warning(f"No reviewers found with ≥{hotel_count_option} available hotels")
-    
+#     hotel_count_option = st.radio(
+#         "Select users with minimum available hotels:",
+#         options=[10, 9, 8, 7, 6, 5, 4, 3, 2, 1],
+#         format_func=lambda x: f"{x} hotels",
+#         index=0
+#     )
+
+    # filtered_users = df_reviewer_counts[df_reviewer_counts['count'] == hotel_count_option]
+    # st.info(f"Found {len(filtered_users)} users with = {hotel_count_option} available hotels")
+
+
     # Description limit control
     desc_limit = st.slider(
         "Description limit (words)", 
@@ -71,6 +61,20 @@ with st.sidebar:
         value=DEFAULT_DESC_LIMIT, 
         step=DESC_LIMIT_STEP
     )
+
+filtered_users = df_reviewer_counts[df_reviewer_counts['count'].between(3, 9)].sort_values(['count', 'reviewer_name'], ascending=[False, True])
+
+if not filtered_users.empty:
+    selected_user = st.selectbox(
+        "Select Reviewer:",
+        options=filtered_users['reviewer_name'].tolist(),
+        index=0,
+        # format_func=lambda x: f"{x} ({filtered_users[filtered_users['reviewer_name']==x]['count'].iloc[0]} hotels)"
+        format_func=lambda x: f"{x}"
+    )
+else:
+    selected_user = None
+    # st.warning(f"No reviewers found with ≥{hotel_count_option} available hotels")
 
 # ------------------------------------------------------------------------------
 # Main program - Display ALS recommendations
@@ -92,7 +96,7 @@ if selected_user:
         recommendations = recommendations.set_index('hotel_id').reindex(recommendation_hotel_ids).reset_index()
         
         for idx, (_, hotel) in enumerate(recommendations.iterrows()):
-            st.markdown(f"**{idx+1}. {hotel['hotel_name']}** (Score: {hotel['als_score']:.2f})")
+            st.markdown(f"**{idx+1}. {hotel['hotel_name']}** (Score: {hotel['als_score']:.1f})")
         
         st.markdown("---")
         
