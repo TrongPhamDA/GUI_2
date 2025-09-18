@@ -60,26 +60,28 @@ search_input = st.text_input(
 
 with st.sidebar:
     selected_model = st.radio(
-        "Select similarity model",
+        "Model",
         options=AVAILABLE_MODELS,
         index=AVAILABLE_MODELS.index(DEFAULT_MODEL),
         horizontal=True,
     )
-    top_k = st.slider(
-        "Select top N similar hotels", 
-        min_value=TOP_K_MIN, 
-        max_value=TOP_K_MAX, 
-        value=DEFAULT_TOP_K, 
-        step=TOP_K_STEP
-    )
-    desc_limit = st.slider(
-        "Description limit (words)", 
-        min_value=DESC_LIMIT_MIN, 
-        max_value=DESC_LIMIT_MAX, 
-        value=DEFAULT_DESC_LIMIT, 
-        step=DESC_LIMIT_STEP
-    )
-
+    # top_k = st.slider(
+    #     "Top N hotels", 
+    #     min_value=TOP_K_MIN, 
+    #     max_value=TOP_K_MAX, 
+    #     value=DEFAULT_TOP_K, 
+    #     step=TOP_K_STEP
+    # )
+    top_k = DEFAULT_TOP_K
+    
+    # desc_limit = st.slider(
+    #     "Description limit (words)", 
+    #     min_value=DESC_LIMIT_MIN, 
+    #     max_value=DESC_LIMIT_MAX, 
+    #     value=DEFAULT_DESC_LIMIT, 
+    #     step=DESC_LIMIT_STEP
+    # )
+    desc_limit = DEFAULT_DESC_LIMIT
 # ------------------------------------------------------------------------------
 # Text preprocessing
 search_input_tokens = fn_clean_tokens(

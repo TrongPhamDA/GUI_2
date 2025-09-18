@@ -48,27 +48,28 @@ hotel_options = [
 # User interface controls
 # Create hotel selection dropdown
 selected_hotel = st.selectbox(
-    "Try it now!", options=hotel_options, format_func=lambda x: x[0]
+    "Select a hotel!", options=hotel_options, format_func=lambda x: x[0]
 )
 
 # Create sidebar controls
 with st.sidebar:
     # Radio button for model selection
     selected_model = st.radio(
-        "model",
+        "Model",
         options=AVAILABLE_MODELS,
         index=AVAILABLE_MODELS.index(DEFAULT_MODEL),
         horizontal=True,
     )
 
     # Slider for recommendations
-    top_k = st.slider(
-        "Top N hotels", 
-        min_value=TOP_K_MIN, 
-        max_value=TOP_K_MAX, 
-        value=DEFAULT_TOP_K, 
-        step=TOP_K_STEP
-    )
+    # top_k = st.slider(
+    #     "Top N hotels", 
+    #     min_value=TOP_K_MIN, 
+    #     max_value=TOP_K_MAX, 
+    #     value=DEFAULT_TOP_K, 
+    #     step=TOP_K_STEP
+    # )
+    top_k = DEFAULT_TOP_K
 
     # Slider for description limit
     # desc_limit = st.slider(
@@ -78,7 +79,7 @@ with st.sidebar:
     #     value=DEFAULT_DESC_LIMIT, 
     #     step=DESC_LIMIT_STEP
     # )
-    desc_limit = 100
+    desc_limit = DEFAULT_DESC_LIMIT
 
 # Select similarity matrix
 df_matrix = df_matrix_gensim if selected_model == "gensim" else df_matrix_cosine

@@ -77,9 +77,10 @@ with st.sidebar:
     # )
 
     # Slider for bins time
-    bins_time = st.slider(
-        "Bins per unit score", min_value=1, max_value=5, value=DEFAULT_BINS_TIME, step=1
-    )
+    # bins_time = st.slider(
+    #     "Bins per unit score", min_value=1, max_value=5, value=DEFAULT_BINS_TIME, step=1
+    # )
+    bins_time = DEFAULT_BINS_TIME
 
     # # Slider for description limit
     # desc_limit = st.slider(
@@ -92,7 +93,7 @@ with st.sidebar:
 
     # Slider for word count limit
     word_count_limit = st.slider(
-        "Word count limit for word cloud",
+        "Word Cloud",
         min_value=WORD_COUNT_LIMIT_MIN,
         max_value=WORD_COUNT_LIMIT_MAX,
         value=WORD_COUNT_LIMIT_DEFAULT,

@@ -31,12 +31,13 @@ DEFAULT_SEARCH_INPUT = "khách sạn 5 sao mới, gần biển, spa"
 TOP_K_MIN = 1
 TOP_K_MAX = 10
 TOP_K_STEP = 1
-DEFAULT_TOP_K = 3
+# DEFAULT_TOP_K = 3
+DEFAULT_TOP_K = 12
 
 DESC_LIMIT_MIN = 30
 DESC_LIMIT_MAX = 500
 DESC_LIMIT_STEP = 10
-DEFAULT_DESC_LIMIT = 30
+DEFAULT_DESC_LIMIT = 100
 
 # ------------------------------------------------------------------------------
 # File Paths
@@ -122,7 +123,7 @@ RATING_COLS = ["location", "cleanliness", "service", "facilities", "value_for_mo
 # Score classification thresholds
 SCORE_CLASSIFY_DICT = {
     "Strength": 8.5,
-    "Neutral": 7.5,
+    "Neutral": 8.0,
 }
 
 # Chart types configuration
@@ -169,6 +170,82 @@ WORD_COUNT_LIMIT_MIN = 10
 WORD_COUNT_LIMIT_MAX = 100
 WORD_COUNT_LIMIT_DEFAULT = 25
 WORD_COUNT_LIMIT_STEP = 5
+
+# Next action recommendations for insights
+NEXT_ACTION = {
+    "location": {
+        "Strength": [
+            "Tiếp tục quảng bá vị trí thuận lợi trong marketing",
+            "Tạo content về các điểm tham quan gần khách sạn",
+            "Phát triển tour du lịch kết hợp với vị trí"
+        ],
+        "Weakness": [
+            "Cải thiện hướng dẫn đường đi chi tiết",
+            "Cung cấp dịch vụ đưa đón từ sân bay/ga tàu",
+            "Tạo bản đồ tương tác với các điểm tham quan"
+        ]
+    },
+    "cleanliness": {
+        "Strength": [
+            "Duy trì tiêu chuẩn vệ sinh cao",
+            "Tạo chương trình đào tạo nhân viên định kỳ",
+            "Quảng bá tiêu chuẩn vệ sinh trong marketing"
+        ],
+        "Weakness": [
+            "Tăng cường kiểm tra vệ sinh hàng ngày",
+            "Đào tạo lại nhân viên về quy trình vệ sinh",
+            "Đầu tư thiết bị vệ sinh chuyên nghiệp"
+        ]
+    },
+    "service": {
+        "Strength": [
+            "Phát triển chương trình đào tạo nâng cao",
+            "Tạo hệ thống feedback khách hàng real-time",
+            "Mở rộng dịch vụ cá nhân hóa"
+        ],
+        "Weakness": [
+            "Đào tạo kỹ năng giao tiếp cho nhân viên",
+            "Cải thiện thời gian phản hồi yêu cầu khách hàng",
+            "Tăng cường giám sát chất lượng dịch vụ"
+        ]
+    },
+    "facilities": {
+        "Strength": [
+            "Quảng bá các tiện ích độc đáo",
+            "Tạo gói dịch vụ kết hợp tiện ích",
+            "Phát triển tiện ích mới dựa trên feedback"
+        ],
+        "Weakness": [
+            "Đầu tư nâng cấp tiện ích cũ",
+            "Thêm tiện ích hiện đại (wifi, gym, spa)",
+            "Cải thiện bảo trì thiết bị định kỳ"
+        ]
+    },
+    "value_for_money": {
+        "Strength": [
+            "Tạo gói combo giá trị cao",
+            "Phát triển chương trình khách hàng thân thiết",
+            "Quảng bá giá trị vượt trội so với đối thủ"
+        ],
+        "Weakness": [
+            "Điều chỉnh giá phù hợp với chất lượng",
+            "Tăng cường giá trị dịch vụ không tăng giá",
+            "Tạo gói ưu đãi cho khách hàng mới"
+        ]
+    },
+    "comfort_and_room_quality": {
+        "Strength": [
+            "Nâng cấp phòng với tiện ích cao cấp",
+            "Tạo concept phòng độc đáo",
+            "Phát triển dịch vụ phòng 24/7"
+        ],
+        "Weakness": [
+            "Đầu tư nội thất và trang thiết bị mới",
+            "Cải thiện cách âm và ánh sáng phòng",
+            "Nâng cấp hệ thống điều hòa và wifi"
+        ]
+    }
+}
 
 # ------------------------------------------------------------------------------
 # Text Processing Configuration

@@ -54,13 +54,14 @@ with st.sidebar:
 
 
     # Description limit control
-    desc_limit = st.slider(
-        "Description limit (words)", 
-        min_value=DESC_LIMIT_MIN, 
-        max_value=DESC_LIMIT_MAX, 
-        value=DEFAULT_DESC_LIMIT, 
-        step=DESC_LIMIT_STEP
-    )
+    # desc_limit = st.slider(
+    #     "Description limit (words)", 
+    #     min_value=DESC_LIMIT_MIN, 
+    #     max_value=DESC_LIMIT_MAX, 
+    #     value=DEFAULT_DESC_LIMIT, 
+    #     step=DESC_LIMIT_STEP
+    # )
+    desc_limit = DEFAULT_DESC_LIMIT
 
 filtered_users = df_reviewer_counts[df_reviewer_counts['count'].between(3, 9)].sort_values(['count', 'reviewer_name'], ascending=[False, True])
 
@@ -81,12 +82,13 @@ else:
 if selected_user:
     user_recommendations = df_als_recs[df_als_recs['reviewer_name'] == selected_user].sort_values('score', ascending=False)
     user_available_hotels = df_reviewer[df_reviewer['reviewer_name'] == selected_user]['hotel_id'].tolist()
-    user_recommendations = user_recommendations[user_recommendations['hotel_id'].isin(user_available_hotels)].head(3)
+    # user_recommendations = user_recommendations[user_recommendations['hotel_id'].isin(user_available_hotels)].head(3)
+    user_recommendations = user_recommendations[user_recommendations['hotel_id'].isin(user_available_hotels)]
     
     if not user_recommendations.empty:
-        st.markdown(f"### Customer: {selected_user}")
-        st.markdown(f"**Top {len(user_recommendations)} available recommended hotels:**")
-        st.markdown("---")
+        # st.markdown(f"### Customer: {selected_user}")
+        # st.markdown(f"**Top {len(user_recommendations)} available recommended hotels:**")
+        # st.markdown("---")
         
         recommendation_hotel_ids = user_recommendations['hotel_id'].tolist()
         recommendations = df_hotels[df_hotels['hotel_id'].isin(recommendation_hotel_ids)].copy()
@@ -95,14 +97,15 @@ if selected_user:
         recommendations['als_score'] = recommendations['hotel_id'].map(score_dict)
         recommendations = recommendations.set_index('hotel_id').reindex(recommendation_hotel_ids).reset_index()
         
-        for idx, (_, hotel) in enumerate(recommendations.iterrows()):
-            st.markdown(f"**{idx+1}. {hotel['hotel_name']}** (Score: {hotel['als_score']:.1f})")
+        # for idx, (_, hotel) in enumerate(recommendations.iterrows()):
+        #     st.markdown(f"**{idx+1}. {hotel['hotel_name']}** (Score: {hotel['als_score']:.1f})")
         
-        st.markdown("---")
+        # st.markdown("---")
         
         if len(recommendations) > 1:
             main_hotel = recommendations.iloc[0]
-            other_recommendations = recommendations.iloc[1:]
+            # other_recommendations = recommendations.iloc[1:]
+            other_recommendations = recommendations
             
             fn_display_recommendations_section(
                 main_hotel=main_hotel,

@@ -485,8 +485,8 @@ def fn_display_recommendations_section(
     main_hotel: pd.Series, recommendations: pd.DataFrame, top_k: int, desc_limit: int = 100
 ):
     """
-    Display recommendations section with professional comparison table
-    
+    Display recommendations vertically, each hotel as a block, with "Show more" and "Show less" buttons
+
     Args:
         main_hotel: Series with main hotel information
         recommendations: DataFrame with recommended hotels
@@ -494,93 +494,91 @@ def fn_display_recommendations_section(
         desc_limit: Maximum number of words in description
     """
     st.markdown(
-        f"<h4 style='color:#2C3E50;font-weight:700;'>Compare top {top_k} hotels for you</h4>",
+        # f"<h4 style='color:#2C3E50;font-weight:700;'>Top {top_k} recommended hotels for you</h4>",
+        f"<h4 style='color:#2C3E50;font-weight:700;'>Top recommended hotels for you</h4>",
         unsafe_allow_html=True,
     )
-    if not recommendations.empty:
-        criteria = [
-            "hotel_address",
-            "hotel_rank",
-            "comments_count",
-            "total_score",
-            "location",
-            "cleanliness",
-            "service",
-            "facilities",
-            "value_for_money",
-            "comfort_and_room_quality",
-            "hotel_description",
-        ]
-        
-        main_hotel_clean = main_hotel.copy()
-        recommendations_clean = recommendations.copy()
-        
-        for c in criteria:
-            if c in main_hotel_clean.index and pd.isna(main_hotel_clean[c]):
-                main_hotel_clean[c] = "..."
-            if c in recommendations_clean.columns:
-                recommendations_clean[c] = recommendations_clean[c].fillna("...")
-        
-        names = [main_hotel_clean["hotel_name"]] + recommendations_clean["hotel_name"].tolist()
-        num_hotels = len(names)
-        col_fact_width = 18
-        col_other_width = round((100 - col_fact_width) / num_hotels, 2)
-        th_style = "background:#f5f6fa;color:#2C3E50;padding:8px;text-align:center;border:1px solid #e1e1e1;"
-        td_style = "padding:8px;text-align:center;border:1px solid #e1e1e1;"
-        st.markdown(
-            """
-        <style>
-        .compare-table th, .compare-table td {border:1px solid #e1e1e1;padding:8px;text-align:center;}
-        .compare-table th {background:#f5f6fa;color:#2C3E50;}
-        .compare-table tr:nth-child(even) {background:#f9f9f9;}
-        </style>
-        """,
-            unsafe_allow_html=True,
-        )
-        table = "<table class='compare-table' style='width:100%;border-collapse:collapse;'><tr>"
-        table += (
-            f"<th style='{th_style}width:{col_fact_width}%;text-align:left;'>Fact</th>"
-        )
-        for n in names:
-            table += f"<th style='{th_style}width:{col_other_width}%;'>{n}</th>"
-        table += "</tr>"
-        for c in criteria:
-            table += f"<tr><td style='font-weight:600;text-align:left;width:{col_fact_width}%;{td_style}'>{c.replace('_',' ').title()}</td>"
-            if c == "hotel_description":
-                # Sử dụng expander cho từng khách sạn, chỉ show desc_rec_short khi nhấn Show details
-                desc_main_full = str(main_hotel_clean.get(c, ""))
-                desc_main_short = " ".join(desc_main_full.split()[:desc_limit]) + ("..." if len(desc_main_full.split()) > desc_limit else "")
-                table += f"<td style='max-width:350px;word-break:break-word;text-align:left;vertical-align:top;width:{col_other_width}%;{td_style};text-align:left;vertical-align:top;'>"
-                table += f"<details><summary style='cursor:pointer;'>Show details</summary><div style='margin-top:8px;text-align:left;'>{desc_main_short}</div></details></td>"
-                for _, h in recommendations_clean.iterrows():
-                    desc_rec_full = str(h.get(c, ""))
-                    desc_rec_short = " ".join(desc_rec_full.split()[:desc_limit]) + ("..." if len(desc_rec_full.split()) > desc_limit else "")
-                    table += f"<td style='max-width:350px;word-break:break-word;text-align:left;vertical-align:top;width:{col_other_width}%;{td_style};text-align:left;vertical-align:top;'>"
-                    table += f"<details><summary style='cursor:pointer;'>Show details</summary><div style='margin-top:8px;text-align:left;'>{desc_rec_short}</div></details></td>"
-            elif c == "hotel_rank":
-                value_main = main_hotel_clean.get(c, "")
-                table += f"<td style='font-size:2.0em;font-weight:bold;width:{col_other_width}%;{td_style}'>{fn_rank_star(value_main)}</td>"
-                for _, h in recommendations_clean.iterrows():
-                    value_rec = h.get(c, "")
-                    table += f"<td style='font-size:2.0em;font-weight:bold;width:{col_other_width}%;{td_style}'>{fn_rank_star(value_rec)}</td>"
-            elif c == "total_score":
-                value_main = main_hotel_clean.get(c, "")
-                table += f"<td style='font-size:2.0em;font-weight:bold;width:{col_other_width}%;{td_style}color:#07af56;'>{value_main}</td>"
-                for _, h in recommendations_clean.iterrows():
-                    value_rec = h.get(c, "")
-                    table += f"<td style='font-size:2.0em;font-weight:bold;width:{col_other_width}%;{td_style}color:#07af56;'>{value_rec}</td>"
-            else:
-                table += f"<td style='width:{col_other_width}%;{td_style}'>{main_hotel_clean.get(c,'')}</td>"
-                for _, h in recommendations_clean.iterrows():
-                    table += f"<td style='width:{col_other_width}%;{td_style}'>{h.get(c,'')}</td>"
-            table += "</tr>"
-        table += "</table>"
-        st.markdown(table, unsafe_allow_html=True)
-    else:
+    if recommendations.empty:
         st.markdown(
             "<div style='color:#c0392b;'>No recommended hotels found.</div>",
             unsafe_allow_html=True,
         )
+        return
+
+    criteria = [
+        "hotel_address",
+        "hotel_rank",
+        "comments_count",
+        "total_score",
+        "location",
+        "cleanliness",
+        "service",
+        "facilities",
+        "value_for_money",
+        "comfort_and_room_quality",
+        "hotel_description",
+    ]
+
+    main_hotel_clean = main_hotel.copy()
+    recommendations_clean = recommendations.copy()
+    for c in criteria:
+        if c in main_hotel_clean.index and pd.isna(main_hotel_clean[c]):
+            main_hotel_clean[c] = "..."
+        if c in recommendations_clean.columns:
+            recommendations_clean[c] = recommendations_clean[c].fillna("...")
+
+    # with st.container():
+    #     st.markdown(
+    #         f"<div style='background:#f5f6fa;padding:18px 18px 10px 18px;border-radius:10px;margin-bottom:18px;border:1px solid #e1e1e1;'>"
+    #         f"<h5 style='color:#1e3c72;font-weight:700;margin-bottom:8px;'>{main_hotel_clean['hotel_name']}</h5>"
+    #         f"<div style='font-size:1.1em;'><b>Address:</b> {main_hotel_clean.get('hotel_address','')}</div>"
+    #         f"<div style='margin:6px 0;'><b>Rank:</b> {fn_rank_star(main_hotel_clean.get('hotel_rank',''))} &nbsp; <b>Total Score:</b> <span style='color:#07af56;font-weight:700;'>{main_hotel_clean.get('total_score','')}</span></div>"
+    #         f"<div style='margin:6px 0;'><b>Location:</b> {main_hotel_clean.get('location','')} &nbsp; <b>Cleanliness:</b> {main_hotel_clean.get('cleanliness','')} &nbsp; <b>Service:</b> {main_hotel_clean.get('service','')}</div>"
+    #         f"<div style='margin:6px 0;'><b>Facilities:</b> {main_hotel_clean.get('facilities','')} &nbsp; <b>Value for Money:</b> {main_hotel_clean.get('value_for_money','')} &nbsp; <b>Comfort & Room Quality:</b> {main_hotel_clean.get('comfort_and_room_quality','')}</div>"
+    #         f"<details><summary style='cursor:pointer;font-weight:500;'>Show description</summary><div style='margin-top:8px;text-align:left;'>{' '.join(str(main_hotel_clean.get('hotel_description','')).split()[:desc_limit]) + ('...' if len(str(main_hotel_clean.get('hotel_description','')).split()) > desc_limit else '')}</div></details>"
+    #         f"</div>",
+    #         unsafe_allow_html=True,
+    #     )
+
+    hotels_per_page = 3
+    total_hotels = min(top_k, len(recommendations_clean))
+    if "recommendations_shown" not in st.session_state:
+        st.session_state["recommendations_shown"] = hotels_per_page
+
+    shown = st.session_state["recommendations_shown"]
+    shown = min(shown, total_hotels)
+
+    for idx, (_, hotel) in enumerate(recommendations_clean.head(shown).iterrows()):
+        with st.container():
+            st.markdown(
+                f"<div style='background:#fff;padding:16px 16px 8px 16px;border-radius:10px;margin-bottom:14px;border:1px solid #e1e1e1;'>"
+                f"<h5 style='color:#2C3E50;font-weight:700;margin-bottom:8px;'>{hotel['hotel_name']}</h5>"
+                f"<div style='font-size:1.05em;'><b>Address:</b> {hotel.get('hotel_address','')}</div>"
+                f"<div style='margin:6px 0;'><b>Rank:</b> {fn_rank_star(hotel.get('hotel_rank',''))} &nbsp; <b>Total Score:</b> <span style='color:#07af56;font-weight:700;'>{hotel.get('total_score','')}</span></div>"
+                f"<div style='display:flex;flex-wrap:wrap;gap:10px;margin:8px 0;'>"
+                f"<div style='flex:1;min-width:180px;background:#f0f4f8;padding:8px 12px;border-radius:7px;margin-bottom:6px;box-shadow:0 1px 4px rgba(30,60,114,0.04);'><span style='color:#1e3c72;font-weight:600;'>📍 Location:</span> <span style='color:#34495e;'>{hotel.get('location','')}</span></div>"
+                f"<div style='flex:1;min-width:180px;background:#f0f4f8;padding:8px 12px;border-radius:7px;margin-bottom:6px;box-shadow:0 1px 4px rgba(30,60,114,0.04);'><span style='color:#1e3c72;font-weight:600;'>🧹 Cleanliness:</span> <span style='color:#34495e;'>{hotel.get('cleanliness','')}</span></div>"
+                f"<div style='flex:1;min-width:180px;background:#f0f4f8;padding:8px 12px;border-radius:7px;margin-bottom:6px;box-shadow:0 1px 4px rgba(30,60,114,0.04);'><span style='color:#1e3c72;font-weight:600;'>🤝 Service:</span> <span style='color:#34495e;'>{hotel.get('service','')}</span></div>"
+                f"<div style='flex:1;min-width:180px;background:#f0f4f8;padding:8px 12px;border-radius:7px;margin-bottom:6px;box-shadow:0 1px 4px rgba(30,60,114,0.04);'><span style='color:#1e3c72;font-weight:600;'>🏊 Facilities:</span> <span style='color:#34495e;'>{hotel.get('facilities','')}</span></div>"
+                f"<div style='flex:1;min-width:180px;background:#f0f4f8;padding:8px 12px;border-radius:7px;margin-bottom:6px;box-shadow:0 1px 4px rgba(30,60,114,0.04);'><span style='color:#1e3c72;font-weight:600;'>💰 Value for Money:</span> <span style='color:#34495e;'>{hotel.get('value_for_money','')}</span></div>"
+                f"<div style='flex:1;min-width:180px;background:#f0f4f8;padding:8px 12px;border-radius:7px;margin-bottom:6px;box-shadow:0 1px 4px rgba(30,60,114,0.04);'><span style='color:#1e3c72;font-weight:600;'>🛏️ Comfort & Room Quality:</span> <span style='color:#34495e;'>{hotel.get('comfort_and_room_quality','')}</span></div>"
+                f"</div>"
+                f"<details><summary style='cursor:pointer;font-weight:500;'>Show description</summary><div style='margin-top:8px;text-align:left;'>{' '.join(str(hotel.get('hotel_description','')).split()[:desc_limit]) + ('...' if len(str(hotel.get('hotel_description','')).split()) > desc_limit else '')}</div></details>"
+                f"</div>",
+                unsafe_allow_html=True,
+            )
+
+    _, col1, col2, _ = st.columns([0.4, 0.1, 0.1, 0.4])
+    with col1:
+        if shown > hotels_per_page:
+            if st.button("show less", key="show_less_recommendations"):
+                st.session_state["recommendations_shown"] = max(hotels_per_page, shown - hotels_per_page)
+    with col2:
+        if shown < total_hotels:
+            if st.button("show more", key="show_more_recommendations"):
+                st.session_state["recommendations_shown"] = min(shown + hotels_per_page, total_hotels)
+    if shown > total_hotels:
+        st.session_state["recommendations_shown"] = hotels_per_page
 
 
 def fn_main_display_selected_hotel(selected_hotel_id, df_hotels, df_matrix, top_k, desc_limit=100):
@@ -597,8 +595,8 @@ def fn_main_display_selected_hotel(selected_hotel_id, df_hotels, df_matrix, top_
     selected_hotel_df = df_hotels[df_hotels["hotel_id"] == selected_hotel_id]
     if not selected_hotel_df.empty:
         hotel_info = selected_hotel_df.iloc[0]
-        st.write("####", "About this hotel:")
-        fn_display_hotel_info(hotel_info, desc_limit)
+        # st.write("####", "About this hotel:")
+        # fn_display_hotel_info(hotel_info, desc_limit)
         recommendations = fn_get_recommendations_page1(
             df=df_hotels, hotel_id=selected_hotel_id, matrix=df_matrix, top_k=top_k
         )
@@ -1004,6 +1002,38 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels,figsize=DEFAULT_FIGSI
                         use_container_width=True,
                         hide_index=True
                     )
+                
+                # Next Actions table
+                next_actions_data = []
+                for classification in ['Strength', 'Weakness']:
+                    items = strengths_analysis[strengths_analysis['classification'] == classification]
+                    if not items.empty:
+                        for attr in items['attr'].tolist():
+                            if attr in NEXT_ACTION and classification in NEXT_ACTION[attr]:
+                                actions = NEXT_ACTION[attr][classification]
+                                for action in actions:
+                                    next_actions_data.append({
+                                        'Classification': classification,
+                                        'Attribute': attr,
+                                        'Action': action
+                                    })
+                if len(next_actions_data) > 0:
+                    next_actions_df = pd.DataFrame(next_actions_data)
+                    next_actions_df['Color'] = next_actions_df['Classification'].map({
+                        'Strength': '🟢', 'Weakness': '🔴'
+                    })
+                    st.markdown("##### Next Actions")
+                    st.dataframe(
+                        next_actions_df[['Color', 'Classification', 'Attribute', 'Action']],
+                        use_container_width=True,
+                        hide_index=True
+                    )
+                else:
+                    num_weakness = strengths_analysis[strengths_analysis['classification'] == 'Weakness'].shape[0]
+                    if num_weakness > 0:
+                        st.info(f"Rõ ràng có {num_weakness} điểm yếu (weakness), nhưng không có hành động tiếp theo phù hợp với dữ liệu hiện tại.")
+                    else:
+                        st.info("Không có hành động tiếp theo phù hợp với dữ liệu hiện tại.")
             else:
                 st.warning("No rating data available for strengths & weaknesses analysis")
     
@@ -1102,7 +1132,7 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels,figsize=DEFAULT_FIGSI
                         plt.close()
                     else:
                         st.info("No positive keywords found for all hotels")
-                
+                st.write("---")
                 # Row 2: Negative Keywords
                 # st.markdown("**Negative Keywords**")
                 col3, col4 = st.columns(2)
