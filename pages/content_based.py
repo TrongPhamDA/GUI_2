@@ -55,7 +55,7 @@ selected_hotel = st.selectbox(
 with st.sidebar:
     # Radio button for model selection
     selected_model = st.radio(
-        "Select similarity model",
+        "model",
         options=AVAILABLE_MODELS,
         index=AVAILABLE_MODELS.index(DEFAULT_MODEL),
         horizontal=True,
@@ -63,7 +63,7 @@ with st.sidebar:
 
     # Slider for recommendations
     top_k = st.slider(
-        "Select top N similar hotels", 
+        "Top N hotels", 
         min_value=TOP_K_MIN, 
         max_value=TOP_K_MAX, 
         value=DEFAULT_TOP_K, 
@@ -71,13 +71,14 @@ with st.sidebar:
     )
 
     # Slider for description limit
-    desc_limit = st.slider(
-        "Description limit (words)", 
-        min_value=DESC_LIMIT_MIN, 
-        max_value=DESC_LIMIT_MAX, 
-        value=DEFAULT_DESC_LIMIT, 
-        step=DESC_LIMIT_STEP
-    )
+    # desc_limit = st.slider(
+    #     "Description limit (words)", 
+    #     min_value=DESC_LIMIT_MIN, 
+    #     max_value=DESC_LIMIT_MAX, 
+    #     value=DEFAULT_DESC_LIMIT, 
+    #     step=DESC_LIMIT_STEP
+    # )
+    desc_limit = 100
 
 # Select similarity matrix
 df_matrix = df_matrix_gensim if selected_model == "gensim" else df_matrix_cosine
