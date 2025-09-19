@@ -137,7 +137,7 @@ CHART_TYPES = {
 # Customer analysis chart configuration
 CUSTOMER_CHART_COLS = {
     "fn_bar_chart": ["nationality", "group_name", "room_type"],
-    "fn_line_timeseries_chart": ["review_month"]
+    "fn_line_timeseries_chart": ["review_month", "review_year"]
 }
 
 # Customer comparison chart configuration
@@ -146,7 +146,8 @@ CUSTOMER_COMPARISON_CONFIG = {
         {"type": "bar", "column": "nationality", "title": "Top 10 Nationality"},
         {"type": "bar", "column": "group_name", "title": "Group Name"},
         {"type": "bar", "column": "room_type", "title": "Top 10 Room Type"},
-        {"type": "line", "column": "review_month", "title": "Review by Month"},
+        # {"type": "line", "column": "review_date", "title": "Review by Date"},
+        {"type": "line", "column": "review_month", "title": "Review by Month (Seasonality)"},
         {"type": "line", "column": "review_year", "title": "Review by Year"}
     ],
     "colors": {

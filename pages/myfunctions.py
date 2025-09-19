@@ -36,22 +36,6 @@ def fn_clean_tokens(
     remove_vie_tone=False,
     lower=True,
 ):
-    """
-    Clean hotel review text tokens for NLP analysis
-    
-    Args:
-        text: Input text or list of texts
-        dict_list: Dictionary list for text replacement
-        stopword: Stopwords to remove
-        wrongword: Wrong words to remove
-        remove_number: Remove numbers flag
-        remove_punctuation: Remove punctuation flag
-        remove_vie_tone: Remove Vietnamese tones flag
-        lower: Convert to lowercase flag
-    
-    Returns:
-        Cleaned tokens list
-    """
     def remove_accents(text):
         text = unicodedata.normalize("NFD", text)
         text = text.encode("ascii", "ignore").decode("utf-8")
@@ -118,29 +102,11 @@ def fn_clean_tokens(
 
 
 def fn_read_txt(path):
-    """
-    Read text file lines
-    
-    Args:
-        path: Text file path
-    
-    Returns:
-        Lines list
-    """
     with open(path, "r", encoding="utf-8") as f:
         return [line.rstrip("\n") for line in f]
 
 
 def fn_read_dict(path):
-    """
-    Read dictionary file with tab-separated pairs
-    
-    Args:
-        path: Dictionary file path
-    
-    Returns:
-        Key-value dictionary
-    """
     d = {}
     with open(path, "r", encoding="utf-8") as f:
         for i, line in enumerate(f, 1):
@@ -157,18 +123,6 @@ def fn_read_dict(path):
 def fn_get_recommendations_page1(
     df: pd.DataFrame, hotel_id, matrix: pd.DataFrame, top_k: int
 ) -> pd.DataFrame:
-    """
-    Get top-k similar hotels using content similarity matrix
-    
-    Args:
-        df: Hotel information DataFrame
-        hotel_id: Selected hotel ID
-        matrix: Similarity matrix
-        top_k: Number of recommendations
-    
-    Returns:
-        Top-k similar hotels DataFrame
-    """
     idx = df[df["hotel_id"] == hotel_id].index[0]
     sims = matrix.iloc[idx].copy().drop(idx, errors="ignore")
     top_idx = sims.nlargest(top_k).index
@@ -188,20 +142,6 @@ def fn_get_recommendations_gensim(
     search_input_tokens,
     top_k: int,
 ) -> pd.DataFrame:
-    """
-    Get hotel recommendations using Gensim TF-IDF model
-    
-    Args:
-        gensim_matrix: Gensim similarity matrix
-        corpora_dictionary: Gensim dictionary
-        tfidf_model: TF-IDF model
-        df_hotel_info: Hotel information DataFrame
-        search_input_tokens: Tokenized search input
-        top_k: Number of recommendations
-    
-    Returns:
-        Recommended hotels DataFrame
-    """
     sim = gensim_matrix[tfidf_model[corpora_dictionary.doc2bow(search_input_tokens)]]
     recommend = pd.DataFrame({"id": range(len(sim)), "sim": sim}).nlargest(
         n=top_k, columns="sim"
@@ -213,17 +153,6 @@ def fn_get_recommendations_gensim(
 def fn_get_recommendations_cosine(
     df_hotel_info, search_input, top_k: int
 ) -> pd.DataFrame:
-    """
-    Get hotel recommendations using cosine similarity
-    
-    Args:
-        df_hotel_info: Hotel information DataFrame
-        search_input: Search query text
-        top_k: Number of recommendations
-    
-    Returns:
-        Recommended hotels DataFrame
-    """
     vectorizer = TfidfVectorizer(analyzer="word", stop_words=None)
     tfidf_matrix = vectorizer.fit_transform(
         df_hotel_info["content_wt"].apply(
@@ -249,22 +178,6 @@ def fn_get_recommendations_search(
     search_input,
     top_k: int,
 ) -> pd.DataFrame:
-    """
-    Get hotel recommendations based on search input using selected model
-    
-    Args:
-        selected_model: Model type ('gensim' or 'cosine')
-        gensim_matrix: Gensim similarity matrix
-        corpora_dictionary: Gensim dictionary
-        tfidf_model: TF-IDF model
-        df_hotel_info: Hotel information DataFrame
-        search_input_tokens: Tokenized search input
-        search_input: Original search input text
-        top_k: Number of recommendations
-    
-    Returns:
-        Recommended hotels DataFrame
-    """
     if selected_model == "gensim":
         return fn_get_recommendations_gensim(
             gensim_matrix=gensim_matrix,
@@ -310,14 +223,6 @@ def fn_render_mainpage_header(img_src, page_title, description_1, description_2)
 
 
 def fn_render_footer(owner_list, project_info, show_footer=True):
-    """
-    Render website footer with owner information and project details
-    
-    Args:
-        owner_list: List of owner dictionaries
-        project_info: Dictionary with project information
-        show_footer: Boolean to control footer display
-    """
     if not show_footer:
         return
 
@@ -347,7 +252,7 @@ def fn_render_footer(owner_list, project_info, show_footer=True):
                         <div style="font-style: italic; color: #6c757d; margin-bottom: 0.4rem; font-size: 0.85rem;">{owner['position']}</div>
                         <div style="color: #495057; font-size: 0.8rem; margin-bottom: 0.2rem;">{owner['email']}</div>
                         <div style="color: #495057; font-size: 0.8rem; margin-bottom: 0.2rem;">{owner['phone']}</div>
-                        <a href="{owner['website']}" style="color: #007bff; text-decoration: none; font-size: 0.8rem;">GitHub Profile</a>
+                        <a href="{owner['website']}" style="color: #007bff; text-decoration: none; font-size: 0.8rem;">Profile</a>
                     </div>
                     """,
                     unsafe_allow_html=True
@@ -360,7 +265,6 @@ def fn_render_footer(owner_list, project_info, show_footer=True):
 # ------------------------------------------------------------------------------
 
 def fn_display_report(pdf_path, images_dir, col_num = 2):
-    """Display PDF report with download option and images viewer"""
     with open(pdf_path, "rb") as pdf_file:
         pdf_bytes = pdf_file.read()
     
@@ -391,13 +295,6 @@ def fn_display_report(pdf_path, images_dir, col_num = 2):
 # ------------------------------------------------------------------------------
 
 def fn_display_recommended_hotels(recommended_hotels: pd.DataFrame, cols: int):
-    """
-    Display recommended hotels in grid layout
-    
-    Args:
-        recommended_hotels: Recommended hotels DataFrame
-        cols: Number of grid columns
-    """
     for i in range(0, len(recommended_hotels), cols):
         col_objs = st.columns(cols)
         for j, col in enumerate(col_objs):
@@ -426,13 +323,6 @@ def fn_rank_star(rank):
 
 
 def fn_display_hotel_info(hotel_info: pd.Series, desc_limit: int = 100):
-    """
-    Display detailed hotel information including business metrics and guest ratings
-    
-    Args:
-        hotel_info: Series containing hotel information
-        desc_limit: Maximum number of words in description
-    """
     st.write(f"<h4 style='font-size: 2.2rem; font-weight: 700; color: #1e3c72; margin-bottom: 1rem;'>{hotel_info['hotel_name']}</h2>", unsafe_allow_html=True)
     with st.container():
         st.markdown(f"**Address:** {hotel_info['hotel_address']}")
@@ -460,14 +350,6 @@ def fn_display_hotel_info(hotel_info: pd.Series, desc_limit: int = 100):
 def fn_display_comparison_table(
     main_hotel: pd.Series, recommended_hotels: pd.DataFrame, criteria: list
 ):
-    """
-    Display comparison table for selected and recommended hotels
-    
-    Args:
-        main_hotel: Series with main hotel information
-        recommended_hotels: DataFrame with recommended hotels
-        criteria: List of criteria to compare
-    """
     columns = ["Fact", main_hotel["hotel_name"]] + recommended_hotels[
         "hotel_name"
     ].tolist()
@@ -484,15 +366,6 @@ def fn_display_comparison_table(
 def fn_display_recommendations_section(
     main_hotel: pd.Series, recommendations: pd.DataFrame, top_k: int, desc_limit: int = 100
 ):
-    """
-    Display recommendations vertically, each hotel as a block, with "Show more" and "Show less" buttons
-
-    Args:
-        main_hotel: Series with main hotel information
-        recommendations: DataFrame with recommended hotels
-        top_k: Number of recommendations
-        desc_limit: Maximum number of words in description
-    """
     st.markdown(
         # f"<h4 style='color:#2C3E50;font-weight:700;'>Top {top_k} recommended hotels for you</h4>",
         f"<h4 style='color:#2C3E50;font-weight:700;'>Top recommended hotels for you</h4>",
@@ -582,16 +455,6 @@ def fn_display_recommendations_section(
 
 
 def fn_main_display_selected_hotel(selected_hotel_id, df_hotels, df_matrix, top_k, desc_limit=100):
-    """
-    Main function to display selected hotel information and content-based recommendations
-    
-    Args:
-        selected_hotel_id: ID of the selected hotel
-        df_hotels: DataFrame with hotel information
-        df_matrix: Similarity matrix
-        top_k: Number of recommendations
-        desc_limit: Maximum number of words in description
-    """
     selected_hotel_df = df_hotels[df_hotels["hotel_id"] == selected_hotel_id]
     if not selected_hotel_df.empty:
         hotel_info = selected_hotel_df.iloc[0]
@@ -608,20 +471,6 @@ def fn_main_display_selected_hotel(selected_hotel_id, df_hotels, df_matrix, top_
 def fn_main_display_search_results(df_hotels, search_input_tokens, selected_model, top_k, 
                                  gensim_matrix, corpora_dictionary, tfidf_model, 
                                  search_input, desc_limit=100):
-    """
-    Main function to display search results
-    
-    Args:
-        df_hotels: DataFrame with hotel information
-        search_input_tokens: Tokenized search input
-        selected_model: Model type ('gensim' or 'cosine')
-        top_k: Number of recommendations
-        gensim_matrix: Gensim similarity matrix
-        corpora_dictionary: Gensim dictionary
-        tfidf_model: TF-IDF model
-        search_input: Original search input text
-        desc_limit: Maximum number of words in description
-    """
     recommendations = fn_get_recommendations_search(
         selected_model=selected_model,
         gensim_matrix=gensim_matrix,
@@ -646,32 +495,11 @@ def fn_main_display_search_results(df_hotels, search_input_tokens, selected_mode
 # ------------------------------------------------------------------------------
 
 def fn_safe_get_row(df, key_col, key_val):
-    """
-    Safely get row from DataFrame by key column and value
-    
-    Args:
-        df: DataFrame to search
-        key_col: Column name to search
-        key_val: Value to search for
-    
-    Returns:
-        Series or None if not found
-    """
     sub = df[df[key_col] == key_val]
     return sub.iloc[0] if len(sub) else None
 
 
 def fn_get_hotel_overview(df_info, hotel_id):
-    """
-    Get hotel overview information including calculated average score
-    
-    Args:
-        df_info: DataFrame with hotel information
-        hotel_id: Hotel ID to get overview for
-    
-    Returns:
-        Dictionary with hotel overview data
-    """
     r = fn_safe_get_row(df_info, "hotel_id", hotel_id)
     if r is None:
         return None
@@ -719,20 +547,6 @@ def fn_chart_score_distribution(
     dpi=150,
     image_name: str = ''
 ):
-    """
-    Create score distribution chart with highlighted selected hotel
-    
-    Args:
-        df: DataFrame with hotel data
-        score_col: Column name for scores
-        hotel_id_col: Column name for hotel IDs
-        selected_hotel_id: ID of selected hotel to highlight
-        color_dict: Color scheme for chart elements
-        figsize: Figure size tuple
-        bins_time: Number of bins per unit score
-        dpi: DPI for saved image
-        image_name: Name for saved image file
-    """
     plt.figure(figsize=figsize)
     scores = df[score_col].dropna().values
     min_score, max_score = np.nanmin(scores), np.nanmax(scores)
@@ -798,23 +612,6 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels,figsize=DEFAULT_FIGSI
                             rating_cols=None, score_classify_dict=None, show_radar=True, 
                             show_customer=True, show_wordcloud=True, word_count_limit=20, 
                             df_comments=None, df_comments_token=None):
-    """
-    Display comprehensive hotel insights with multiple chart types
-    
-    Args:
-        selected_hotel_id: ID of selected hotel
-        df_hotels: DataFrame with hotel information
-        figsize: Figure size for charts
-        bins_time: Number of bins per unit score
-        rating_cols: List of rating columns for analysis
-        score_classify_dict: Dictionary with classification thresholds
-        show_radar: Whether to show radar chart
-        show_customer: Whether to show customer analysis
-        show_wordcloud: Whether to show word cloud
-        word_count_limit: Number of words for word cloud
-        df_comments: DataFrame with comment data (optional)
-    """
-    # Default parameters
     if rating_cols is None:
         rating_cols = ["location", "cleanliness", "service", "facilities", "value_for_money", "comfort_and_room_quality"]
     if score_classify_dict is None:
@@ -837,9 +634,7 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels,figsize=DEFAULT_FIGSI
     if not selected_hotel.empty:
         hotel_info = selected_hotel.iloc[0]
         st.markdown("### Hotel Analysis Overview")
-        # fn_display_hotel_info(hotel_info, desc_limit=150)
     
-    # Create tabs for different analysis types
     tab1, tab2, tab3, tab4 = st.tabs(["📈Score Distribution", "🎯Strengths & Weaknesses", "🛒Customer Analysis", "💬Text Mining"])
     
     with tab1:
@@ -878,22 +673,18 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels,figsize=DEFAULT_FIGSI
             else:
                 st.info("No hotel rank data available")
 
-        # Display insights summary with color coding
         selected_overview = next((h for h in hotels_overview if h["hotel_id"] == selected_hotel_id), None)
         
         if selected_overview:
             avg_score = selected_overview["avg_score"]
             rank = selected_overview["hotel_rank"]
             
-            # Calculate market averages for comparison
             all_scores = df_overview["avg_score"].dropna()
             market_avg_score = all_scores.mean() if not all_scores.empty else 0
             
-            # Calculate market average rank if rank data available
             all_ranks = df_overview["hotel_rank"].dropna()
             market_avg_rank = all_ranks.mean() if not all_ranks.empty else 0
             
-            # Display detailed statistics
             col1, col2 = st.columns(2)
             with col1:
                 st.markdown("### Market Score Position Analysis")
@@ -956,40 +747,29 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels,figsize=DEFAULT_FIGSI
                                 "Your Rank",
                                 "N/A"
                             )
-                    
-                    # with col3:
-                    #     fn_display_insights_with_colors("Your score", avg_score, market_avg_score)
-                    
-                    # with col4:
-                    #     fn_display_insights_with_colors("Your rank", rank, market_avg_rank, "{:.0f}")
-
+    
     with tab2:
         if show_radar:
             st.markdown("#### Strengths & Weaknesses Analysis")
-            
-            # Get strengths and weaknesses analysis
             strengths_analysis = fn_get_strengths_weaknesses_analysis(
                 selected_hotel_id, df_hotels, rating_cols, score_classify_dict
             )
             
             if not strengths_analysis.empty:
-                # Create 2-column layout for radar chart and analysis table
                 col_radar, col_table = st.columns(2)
                 
                 with col_radar:
-                    # Display radar chart
                     selected_hotel_name = selected_hotel.iloc[0]["hotel_name"] if not selected_hotel.empty else "Selected Hotel"
                     fig_radar = fn_chart_radar(
                         df=strengths_analysis,
                         selected_hotel_name=selected_hotel_name,
-                        figsize=(figsize[0], figsize[1]),  # Square for radar chart
+                        figsize=(figsize[0], figsize[1]),
                         image_name="strengths_weaknesses_radar"
                     )
                     st.pyplot(fig_radar)
                     plt.close()
                 
                 with col_table:
-                    # Display detailed analysis table
                     display_df = strengths_analysis.copy()
                     display_df['diff_formatted'] = display_df['diff'].apply(lambda x: f"{x:+.1f}" if pd.notna(x) else "Missing")
                     display_df['classification_color'] = display_df['classification'].map({
@@ -1028,7 +808,7 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels,figsize=DEFAULT_FIGSI
                                 'Attributes': ''
                             })
                 
-                    # Display as table with color coding
+                    # Display with color coding
                     summary_df = pd.DataFrame(summary_data)
                     summary_df['Color'] = summary_df['Classification'].map({
                         'Strength': '🟢', 'Neutral': '🟡', 'Weakness': '🔴', 'Missing': '⚪'
@@ -1043,8 +823,6 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels,figsize=DEFAULT_FIGSI
                 
                 # Next Actions table
                 next_actions_data = []
-                
-                # Mapping từ tên hiển thị sang tên trong NEXT_ACTION
                 attr_mapping = {
                     'Location': 'location',
                     'Cleanliness': 'cleanliness', 
@@ -1058,7 +836,6 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels,figsize=DEFAULT_FIGSI
                     attr_display = row['attr']
                     classification = row['classification']
                     
-                    # Chuyển đổi tên attribute
                     attr_key = attr_mapping.get(attr_display, attr_display.lower().replace(' ', '_'))
                     
                     if attr_key in NEXT_ACTION and classification in NEXT_ACTION[attr_key]:
@@ -1119,11 +896,9 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels,figsize=DEFAULT_FIGSI
                     chart_type = config["type"]
                     title = config["title"]
                     
-                    # Check if column exists in data
                     if col not in selected_data.columns or col not in all_data.columns:
                         continue
                     
-                    # Create two columns for each row
                     col1, col2 = st.columns(2)
                     
                     with col1:
@@ -1231,16 +1006,6 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels,figsize=DEFAULT_FIGSI
 
 
 def fn_score_classify(score, score_classify_dict):
-    """
-    Classify score into Strength, Neutral, or Weakness categories
-    
-    Args:
-        score: Score value to classify
-        score_classify_dict: Dictionary with classification thresholds
-    
-    Returns:
-        Classification string or None
-    """
     if pd.isna(score):
         return None
     if score >= score_classify_dict["Strength"]:
@@ -1264,20 +1029,6 @@ def fn_chart_radar(
         "edge": "black"
     }
 ):
-    """
-    Create radar chart for strengths & weaknesses analysis
-    
-    Args:
-        df: DataFrame with attributes, selected_hotel, and all_mean columns
-        selected_hotel_name: Name of selected hotel
-        image_name: Name for saved image
-        figsize: Figure size tuple
-        dpi: DPI for saved image
-        color_dict: Color scheme for chart elements
-    
-    Returns:
-        matplotlib figure object
-    """
     attributes = df['attr'].tolist()
     values = df['selected_hotel'].tolist() + [df['selected_hotel'].tolist()[0]]
     means = df['all_mean'].tolist() + [df['all_mean'].tolist()[0]]
@@ -1299,21 +1050,6 @@ def fn_chart_radar(
 
 
 def fn_chart_customer_analysis(df, chart_cols_dict, color, figsize, dpi, image_name, selected_hotel_name=''):
-    """
-    Create customer analysis charts with multiple subplots
-    
-    Args:
-        df: DataFrame with customer data
-        chart_cols_dict: Dictionary mapping chart types to column lists
-        color: Color for charts
-        figsize: Figure size tuple
-        dpi: DPI for saved image
-        image_name: Name for saved image
-        selected_hotel_name: Name of selected hotel
-    
-    Returns:
-        matplotlib figure object
-    """
     def fn_bar_chart(ax, df, cat_col, color, title):
         data = df[cat_col].value_counts().sort_values(ascending=False)
         sns.barplot(x=data.values, y=data.index, ax=ax, color=color)
@@ -1368,19 +1104,6 @@ def fn_chart_customer_analysis(df, chart_cols_dict, color, figsize, dpi, image_n
 
 
 def fn_chart_wordcloud(df, title=None, figsize=(12, 6), dpi=150, image_name=None):
-    """
-    Create wordcloud chart from word frequency data
-    
-    Args:
-        df: DataFrame with 'word' and 'count' columns
-        title: Chart title
-        figsize: Figure size tuple
-        dpi: DPI for saved image
-        image_name: Name for saved image
-    
-    Returns:
-        matplotlib figure object
-    """
     freq_dict = pd.Series(df['count'].values, index=df['word']).to_dict()
     wc = WordCloud(width=1000, height=500, background_color='white',
                    colormap='viridis', prefer_horizontal=1.0,
@@ -1398,18 +1121,6 @@ def fn_chart_wordcloud(df, title=None, figsize=(12, 6), dpi=150, image_name=None
 
 
 def fn_get_strengths_weaknesses_analysis(selected_hotel_id, df_hotels, rating_cols, score_classify_dict):
-    """
-    Analyze strengths and weaknesses of selected hotel compared to market average
-    
-    Args:
-        selected_hotel_id: ID of selected hotel
-        df_hotels: DataFrame with hotel information
-        rating_cols: List of rating columns to analyze
-        score_classify_dict: Dictionary with classification thresholds
-    
-    Returns:
-        DataFrame with analysis results
-    """
     selected_hotel = df_hotels[df_hotels["hotel_id"] == selected_hotel_id]
     if selected_hotel.empty:
         return pd.DataFrame()
@@ -1436,18 +1147,6 @@ def fn_get_strengths_weaknesses_analysis(selected_hotel_id, df_hotels, rating_co
 
 
 def fn_topwords(df, col='body_new_clean', topN=20, filter=None):
-    """
-    Extract top words from text data with optional filtering
-    
-    Args:
-        df: DataFrame with text data
-        col: Column name containing tokenized text
-        topN: Number of top words to return
-        filter: Filter by sentiment ('pos', 'nev', or None)
-    
-    Returns:
-        DataFrame with top words and their counts
-    """
     if filter in ['pos', 'nev']:
         df_filtered = df[df['classify'] == filter]
     else:
@@ -1467,17 +1166,6 @@ def fn_topwords(df, col='body_new_clean', topN=20, filter=None):
 
 
 def fn_score_stats(df, score_col: str = "score", score_level_col: str = "score_level"):
-    """
-    Calculate statistics for score distribution by score level
-    
-    Args:
-        df: DataFrame with score data
-        score_col: Column name for scores
-        score_level_col: Column name for score levels
-    
-    Returns:
-        DataFrame with statistics
-    """
     stats = (
         df.groupby(score_level_col)[score_col]
         .agg(
@@ -1498,13 +1186,6 @@ def fn_score_stats(df, score_col: str = "score", score_level_col: str = "score_l
 
 
 def fn_display_competitive_analysis_table(similar_hotels, selected_hotel_id):
-    """
-    Display competitive analysis table with show/hide and download functionality
-    
-    Args:
-        similar_hotels: DataFrame with similar hotels
-        selected_hotel_id: ID of selected hotel
-    """
     if similar_hotels.empty:
         st.info("No hotels found with similar scores")
         return
@@ -1516,7 +1197,6 @@ def fn_display_competitive_analysis_table(similar_hotels, selected_hotel_id):
     
     with col2:
         if show_table:
-            # Prepare data for download
             csv_data = similar_hotels[['hotel_name', 'avg_score', 'hotel_rank', 'hotel_address']].copy()
             csv_data = csv_data.to_csv(index=False)
             
@@ -1530,7 +1210,6 @@ def fn_display_competitive_analysis_table(similar_hotels, selected_hotel_id):
     if show_table:
         st.markdown("#### Competitive Hotels Analysis")
         
-        # Create display table
         display_data = similar_hotels[['hotel_name', 'avg_score', 'hotel_rank', 'hotel_address']].copy()
         display_data = display_data.rename(columns={
             'hotel_name': 'Hotel Name',
@@ -1539,27 +1218,16 @@ def fn_display_competitive_analysis_table(similar_hotels, selected_hotel_id):
             'hotel_address': 'Address'
         })
         
-        # Format the table
         display_data['Average Score'] = display_data['Average Score'].apply(lambda x: f"{x:.1f}" if pd.notna(x) else "N/A")
         display_data['Rank'] = display_data['Rank'].apply(lambda x: f"{x:.0f}" if pd.notna(x) else "N/A")
         
         st.dataframe(display_data, use_container_width=True, hide_index=True)
         
-        # Hide button
         if st.button("🔼 Hide Table", key="hide_competitive_table"):
             st.rerun()
 
 
 def fn_display_insights_with_colors(metric_name, value, comparison_value, format_str="{:.1f}"):
-    """
-    Display metric with color coding and arrows based on comparison
-    
-    Args:
-        metric_name: Name of the metric
-        value: Current value
-        comparison_value: Value to compare against
-        format_str: Format string for the value
-    """
     if pd.isna(value) or pd.isna(comparison_value):
         st.metric(metric_name, "N/A")
         return
@@ -1584,16 +1252,6 @@ def fn_display_insights_with_colors(metric_name, value, comparison_value, format
 
 
 def fn_get_customer_analysis_data(selected_hotel_id, df_comments=None):
-    """
-    Get customer analysis data for selected hotel
-    
-    Args:
-        selected_hotel_id: ID of selected hotel
-        df_comments: DataFrame with comment data (optional)
-    
-    Returns:
-        Dictionary with customer analysis data
-    """
     if df_comments is None or df_comments.empty:
         return {
             'nationality': pd.DataFrame(),
@@ -1603,7 +1261,6 @@ def fn_get_customer_analysis_data(selected_hotel_id, df_comments=None):
             'score_stats': pd.DataFrame()
         }
     
-    # Filter comments for selected hotel
     hotel_comments = df_comments[df_comments['hotel_id'] == selected_hotel_id]
     
     if hotel_comments.empty:
@@ -1615,7 +1272,6 @@ def fn_get_customer_analysis_data(selected_hotel_id, df_comments=None):
             'score_stats': pd.DataFrame()
         }
     
-    # Get score statistics
     score_stats = fn_score_stats(hotel_comments, "score", "score_level") if 'score_level' in hotel_comments.columns else pd.DataFrame()
     
     return {
@@ -1628,16 +1284,6 @@ def fn_get_customer_analysis_data(selected_hotel_id, df_comments=None):
 
 
 def fn_bar_chart(ax, df, cat_col, color, title):
-    """
-    Create bar chart for categorical data
-    
-    Args:
-        ax: matplotlib axis object
-        df: DataFrame with data
-        cat_col: categorical column name
-        color: color for bars
-        title: chart title
-    """
     data = df[cat_col].value_counts().head(10).sort_values(ascending=False)
     if not data.empty:
         sns.barplot(x=data.values, y=data.index, ax=ax, color=color)
@@ -1647,30 +1293,16 @@ def fn_bar_chart(ax, df, cat_col, color, title):
 
 
 def fn_line_timeseries_chart(ax, df, time_col, color, title):
-    """
-    Create line chart for time series data
-    
-    Args:
-        ax: matplotlib axis object
-        df: DataFrame with data
-        time_col: time column name
-        color: color for line
-        title: chart title
-    """
     data = df[time_col].value_counts().sort_index()
     if not data.empty:
-        # Use data.index directly since it's already sorted integers
         x = data.index
         y = data.values
         
-        # Create line plot with markers
         ax.plot(x, y, marker="o", color=color, linewidth=2, markersize=6)
         
-        # Force display all x-axis labels
         ax.set_xticks(x)
         ax.set_xticklabels(x)
         
-        # Set x-axis labels and rotation for time columns
         if time_col in ['stay_month', 'review_month', 'review_year']:
             ax.tick_params(axis='x', rotation=45)
     
@@ -1680,23 +1312,12 @@ def fn_line_timeseries_chart(ax, df, time_col, color, title):
 
 
 def fn_get_customer_comparison_data(selected_hotel_id, df_comments=None):
-    """
-    Get customer analysis data for both selected hotel and all hotels
-    
-    Args:
-        selected_hotel_id: ID of selected hotel
-        df_comments: DataFrame with comment data (optional)
-    
-    Returns:
-        Dictionary with comparison data for selected hotel and all hotels
-    """
     if df_comments is None or df_comments.empty:
         return {
             'selected_hotel': pd.DataFrame(),
             'all_hotels': pd.DataFrame()
         }
     
-    # Filter comments for selected hotel
     selected_hotel_comments = df_comments[df_comments['hotel_id'] == selected_hotel_id]
     
     return {
@@ -1706,17 +1327,6 @@ def fn_get_customer_comparison_data(selected_hotel_id, df_comments=None):
 
 
 def fn_get_text_mining_data(selected_hotel_id, df_comments=None, topN=20):
-    """
-    Get text mining data for selected hotel
-    
-    Args:
-        selected_hotel_id: ID of selected hotel
-        df_comments: DataFrame with comment data (optional)
-        topN: Number of top words to extract
-    
-    Returns:
-        Dictionary with text mining data
-    """
     if df_comments is None or df_comments.empty:
         return {
             'all_positive': pd.DataFrame(),
@@ -1725,7 +1335,6 @@ def fn_get_text_mining_data(selected_hotel_id, df_comments=None, topN=20):
             'hotel_negative': pd.DataFrame()
         }
     
-    # Filter comments for selected hotel
     hotel_comments = df_comments[df_comments['hotel_id'] == selected_hotel_id]
     
     if hotel_comments.empty:
@@ -1736,7 +1345,6 @@ def fn_get_text_mining_data(selected_hotel_id, df_comments=None, topN=20):
             'hotel_negative': pd.DataFrame()
         }
     
-    # Get top words for different categories
     all_positive = fn_topwords(df_comments, 'body_new_clean', topN, 'pos') if 'body_new_clean' in df_comments.columns else pd.DataFrame()
     all_negative = fn_topwords(df_comments, 'body_new_clean', topN, 'nev') if 'body_new_clean' in df_comments.columns else pd.DataFrame()
     hotel_positive = fn_topwords(hotel_comments, 'body_new_clean', topN, 'pos') if 'body_new_clean' in hotel_comments.columns else pd.DataFrame()
@@ -1750,7 +1358,6 @@ def fn_get_text_mining_data(selected_hotel_id, df_comments=None, topN=20):
     }
 
 
-# Convert body_new_clean from string to list
 def convert_string_to_list(x):
     if isinstance(x, str):
         try:
