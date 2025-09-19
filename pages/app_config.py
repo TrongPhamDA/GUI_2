@@ -179,6 +179,11 @@ NEXT_ACTION = {
             "Tạo content về các điểm tham quan gần khách sạn",
             "Phát triển tour du lịch kết hợp với vị trí"
         ],
+        "Neutral": [
+            "Khảo sát thêm ý kiến khách hàng về vị trí để xác định điểm cần cải thiện",
+            "Tăng cường thông tin về giao thông xung quanh khách sạn",
+            "Cập nhật bản đồ vị trí trên các nền tảng đặt phòng"
+        ],
         "Weakness": [
             "Cải thiện hướng dẫn đường đi chi tiết",
             "Cung cấp dịch vụ đưa đón từ sân bay/ga tàu",
@@ -190,6 +195,11 @@ NEXT_ACTION = {
             "Duy trì tiêu chuẩn vệ sinh cao",
             "Tạo chương trình đào tạo nhân viên định kỳ",
             "Quảng bá tiêu chuẩn vệ sinh trong marketing"
+        ],
+        "Neutral": [
+            "Đánh giá lại quy trình vệ sinh để phát hiện điểm chưa tối ưu",
+            "Khuyến khích khách hàng phản hồi về vệ sinh phòng",
+            "Tăng cường kiểm tra định kỳ các khu vực công cộng"
         ],
         "Weakness": [
             "Tăng cường kiểm tra vệ sinh hàng ngày",
@@ -203,6 +213,11 @@ NEXT_ACTION = {
             "Tạo hệ thống feedback khách hàng real-time",
             "Mở rộng dịch vụ cá nhân hóa"
         ],
+        "Neutral": [
+            "Khuyến khích nhân viên chủ động hỏi thăm khách",
+            "Tăng cường giao tiếp giữa các bộ phận phục vụ",
+            "Theo dõi phản hồi khách hàng để cải thiện dịch vụ"
+        ],
         "Weakness": [
             "Đào tạo kỹ năng giao tiếp cho nhân viên",
             "Cải thiện thời gian phản hồi yêu cầu khách hàng",
@@ -214,6 +229,11 @@ NEXT_ACTION = {
             "Quảng bá các tiện ích độc đáo",
             "Tạo gói dịch vụ kết hợp tiện ích",
             "Phát triển tiện ích mới dựa trên feedback"
+        ],
+        "Neutral": [
+            "Khảo sát mức độ hài lòng về tiện ích hiện tại",
+            "Bảo trì định kỳ các thiết bị, tiện ích",
+            "Cập nhật thông tin tiện ích rõ ràng trên website"
         ],
         "Weakness": [
             "Đầu tư nâng cấp tiện ích cũ",
@@ -227,6 +247,11 @@ NEXT_ACTION = {
             "Phát triển chương trình khách hàng thân thiết",
             "Quảng bá giá trị vượt trội so với đối thủ"
         ],
+        "Neutral": [
+            "So sánh giá với đối thủ để điều chỉnh phù hợp",
+            "Tăng cường truyền thông về các ưu đãi hiện có",
+            "Khuyến khích khách hàng đánh giá về giá trị nhận được"
+        ],
         "Weakness": [
             "Điều chỉnh giá phù hợp với chất lượng",
             "Tăng cường giá trị dịch vụ không tăng giá",
@@ -238,6 +263,11 @@ NEXT_ACTION = {
             "Nâng cấp phòng với tiện ích cao cấp",
             "Tạo concept phòng độc đáo",
             "Phát triển dịch vụ phòng 24/7"
+        ],
+        "Neutral": [
+            "Khảo sát ý kiến khách về chất lượng phòng",
+            "Kiểm tra định kỳ trang thiết bị trong phòng",
+            "Cải thiện trải nghiệm khách bằng các tiện ích nhỏ (nước, trà, cà phê miễn phí)"
         ],
         "Weakness": [
             "Đầu tư nội thất và trang thiết bị mới",

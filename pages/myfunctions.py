@@ -837,7 +837,7 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels,figsize=DEFAULT_FIGSI
     if not selected_hotel.empty:
         hotel_info = selected_hotel.iloc[0]
         st.markdown("### Hotel Analysis Overview")
-        fn_display_hotel_info(hotel_info, desc_limit=150)
+        # fn_display_hotel_info(hotel_info, desc_limit=150)
     
     # Create tabs for different analysis types
     tab1, tab2, tab3, tab4 = st.tabs(["📈Score Distribution", "🎯Strengths & Weaknesses", "🛒Customer Analysis", "💬Text Mining"])
@@ -894,26 +894,68 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels,figsize=DEFAULT_FIGSI
             market_avg_rank = all_ranks.mean() if not all_ranks.empty else 0
             
             # Display detailed statistics
-            st.markdown("### Market Position Analysis")
+            col1, col2 = st.columns(2)
+            with col1:
+                st.markdown("### Market Score Position Analysis")
+            with col2:
+                st.markdown("### Market Rank Position Analysis")                
             
             if selected_overview and not df_overview.empty:
                 avg_score = selected_overview["avg_score"]
+                rank = selected_overview["hotel_rank"]
                 all_scores = df_overview["avg_score"].dropna()
-                
+                all_ranks = df_overview["hotel_rank"].dropna()
+                market_avg_score = all_scores.mean() if not all_scores.empty else 0
+                market_avg_rank = all_ranks.mean() if not all_ranks.empty else 0
+
                 if not all_scores.empty and pd.notna(avg_score):
-                    col1, col2, col3, col4, col5, col6 = st.columns(6)
-                    
+                    col1, col2, col3, col4, col5, col6, col7, col8 = st.columns(8)
+
                     with col1:
                         st.metric(
                             "Market Average",
-                            f"{all_scores.mean():.1f}"
+                            f"{market_avg_score:.1f}"
                         )
-                    
+
                     with col2:
                         st.metric(
-                            "Market Median", 
+                            "Market Median",
                             f"{all_scores.median():.1f}"
                         )
+
+                    with col3:
+                        st.metric(
+                            label="Your Score",
+                            value=f"{avg_score:.1f}",
+                            delta=f"{avg_score - market_avg_score:+.1f}",
+                            delta_color="normal"
+                        )
+
+                    with col5:
+                        st.metric(
+                            "Market Rank Average",
+                            f"{market_avg_rank:.1f}" if not all_ranks.empty else "N/A"
+                        )
+
+                    with col6:
+                        st.metric(
+                            "Market Rank Median",
+                            f"{all_ranks.median():.1f}" if not all_ranks.empty else "N/A"
+                        )
+
+                    with col7:
+                        if pd.notna(rank) and not all_ranks.empty:
+                            st.metric(
+                                label="Your Rank",
+                                value=f"{rank:.1f}",
+                                delta=f"{rank - market_avg_rank:+.1f}",
+                                delta_color="inverse" if rank < market_avg_rank else "normal"
+                            )
+                        else:
+                            st.metric(
+                                "Your Rank",
+                                "N/A"
+                            )
                     
                     # with col3:
                     #     fn_display_insights_with_colors("Your score", avg_score, market_avg_score)
@@ -965,37 +1007,33 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels,figsize=DEFAULT_FIGSI
                         use_container_width=True
                     )
                 
-                # Summary insights table
-                summary_data = []
-                for classification in ['Strength', 'Neutral', 'Weakness', 'Missing']:
-                    if classification == 'Missing':
-                        items = strengths_analysis[strengths_analysis['classification'].isna()]
-                    else:
-                        items = strengths_analysis[strengths_analysis['classification'] == classification]
+                    # Summary insights table
+                    summary_data = []
+                    for classification in ['Strength', 'Neutral', 'Weakness', 'Missing']:
+                        if classification == 'Missing':
+                            items = strengths_analysis[strengths_analysis['classification'].isna()]
+                        else:
+                            items = strengths_analysis[strengths_analysis['classification'] == classification]
+                        
+                        if not items.empty:
+                            summary_data.append({
+                                'Classification': classification,
+                                'Count': len(items),
+                                'Attributes': ', '.join(items['attr'].tolist())
+                            })
+                        else:
+                            summary_data.append({
+                                'Classification': classification,
+                                'Count': '',
+                                'Attributes': ''
+                            })
+                
+                    # Display as table with color coding
+                    summary_df = pd.DataFrame(summary_data)
+                    summary_df['Color'] = summary_df['Classification'].map({
+                        'Strength': '🟢', 'Neutral': '🟡', 'Weakness': '🔴', 'Missing': '⚪'
+                    })
                     
-                    if not items.empty:
-                        summary_data.append({
-                            'Classification': classification,
-                            'Count': len(items),
-                            'Attributes': ', '.join(items['attr'].tolist())
-                        })
-                    else:
-                        summary_data.append({
-                            'Classification': classification,
-                            'Count': '',
-                            'Attributes': ''
-                        })
-                
-                # Display as table with color coding
-                summary_df = pd.DataFrame(summary_data)
-                summary_df['Color'] = summary_df['Classification'].map({
-                    'Strength': '🟢', 'Neutral': '🟡', 'Weakness': '🔴', 'Missing': '⚪'
-                })
-                
-                col1, col2 = st.columns([1, 1])
-                with col1:
-                    st.write("") # bỏ qua để set layout cho bảng bên dưới
-                with col2:
                     st.markdown("##### Summary Insights")
                     st.dataframe(
                         summary_df[['Color', 'Classification', 'Count', 'Attributes']],
@@ -1005,35 +1043,56 @@ def fn_display_hotel_insights(selected_hotel_id, df_hotels,figsize=DEFAULT_FIGSI
                 
                 # Next Actions table
                 next_actions_data = []
-                for classification in ['Strength', 'Weakness']:
-                    items = strengths_analysis[strengths_analysis['classification'] == classification]
-                    if not items.empty:
-                        for attr in items['attr'].tolist():
-                            if attr in NEXT_ACTION and classification in NEXT_ACTION[attr]:
-                                actions = NEXT_ACTION[attr][classification]
-                                for action in actions:
-                                    next_actions_data.append({
-                                        'Classification': classification,
-                                        'Attribute': attr,
-                                        'Action': action
-                                    })
+                
+                # Mapping từ tên hiển thị sang tên trong NEXT_ACTION
+                attr_mapping = {
+                    'Location': 'location',
+                    'Cleanliness': 'cleanliness', 
+                    'Service': 'service',
+                    'Facilities': 'facilities',
+                    'Value For Money': 'value_for_money',
+                    'Comfort And Room Quality': 'comfort_and_room_quality'
+                }
+                
+                for _, row in display_df.iterrows():
+                    attr_display = row['attr']
+                    classification = row['classification']
+                    
+                    # Chuyển đổi tên attribute
+                    attr_key = attr_mapping.get(attr_display, attr_display.lower().replace(' ', '_'))
+                    
+                    if attr_key in NEXT_ACTION and classification in NEXT_ACTION[attr_key]:
+                        actions = NEXT_ACTION[attr_key][classification]
+                        for action in actions:
+                            next_actions_data.append({
+                                'Classification': classification,
+                                'Attribute': attr_display,
+                                'Action': action
+                            })
+                
                 if len(next_actions_data) > 0:
-                    next_actions_df = pd.DataFrame(next_actions_data)
-                    next_actions_df['Color'] = next_actions_df['Classification'].map({
-                        'Strength': '🟢', 'Weakness': '🔴'
-                    })
                     st.markdown("##### Next Actions")
-                    st.dataframe(
-                        next_actions_df[['Color', 'Classification', 'Attribute', 'Action']],
-                        use_container_width=True,
-                        hide_index=True
-                    )
+                    from collections import defaultdict
+                    grouped_actions = defaultdict(list)
+                    color_map = {'Strength': '🟢', 'Weakness': '🔴', 'Neutral': '🟡'}
+                    for item in next_actions_data:
+                        key = (item['Attribute'], item['Classification'])
+                        grouped_actions[key].append(item['Action'])
+                    for (attr, classification), actions in grouped_actions.items():
+                        color = color_map.get(classification, '')
+                        st.markdown(
+                            f"<div style='margin-bottom:0.1em; margin-top:0.5em;'><b>{color} {classification} - {attr}</b></div>",
+                            unsafe_allow_html=True
+                        )
+                        actions_html = (
+                            "<ul style='margin-top:0.1em; margin-bottom:0.5em; padding-left:1.5em;'>"
+                        )
+                        for action in actions:
+                            actions_html += f"<li style='margin-bottom:0.15em; margin-top:0.15em;'>{action}</li>"
+                        actions_html += "</ul>"
+                        st.markdown(actions_html, unsafe_allow_html=True)
                 else:
-                    num_weakness = strengths_analysis[strengths_analysis['classification'] == 'Weakness'].shape[0]
-                    if num_weakness > 0:
-                        st.info(f"Rõ ràng có {num_weakness} điểm yếu (weakness), nhưng không có hành động tiếp theo phù hợp với dữ liệu hiện tại.")
-                    else:
-                        st.info("Không có hành động tiếp theo phù hợp với dữ liệu hiện tại.")
+                    st.info("Không có hành động tiếp theo phù hợp với dữ liệu hiện tại.")
             else:
                 st.warning("No rating data available for strengths & weaknesses analysis")
     
